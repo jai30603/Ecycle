@@ -3,7 +3,7 @@
 {% block title %}Admin Dashboard - E-Waste Manager{% endblock %}
 
 {% block content %}
-<div class="container py-5 admin-dashboard">
+<div class="container-fluid py-4 admin-dashboard">
     <div class="row mb-4">
         <div class="col-md-8">
             <h1 class="mb-3">Admin Dashboard</h1>
@@ -17,56 +17,157 @@
     </div>
     
     <!-- Quick Stats -->
-    <div class="row mb-5">
-        <div class="col-md-3">
-            <div class="card text-center h-100">
+    <div class="row mb-4">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card text-center h-100 border-left-primary shadow">
                 <div class="card-body">
-                    <h3 class="display-4 mb-0">{{ total_users }}</h3>
-                    <p class="mt-2 mb-0">Total Users</p>
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-primary"></i>
+                        </div>
+                        <div class="col">
+                            <h3 class="display-5 mb-0 fw-bold">{{ total_users }}</h3>
+                            <p class="mt-2 mb-0">Total Users</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center h-100">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card text-center h-100 border-left-warning shadow">
                 <div class="card-body">
-                    <h3 class="display-4 mb-0">{{ pending_pickups }}</h3>
-                    <p class="mt-2 mb-0">Pending Pickups</p>
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-warning"></i>
+                        </div>
+                        <div class="col">
+                            <h3 class="display-5 mb-0 fw-bold">{{ pending_pickups }}</h3>
+                            <p class="mt-2 mb-0">Pending Pickups</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center h-100">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card text-center h-100 border-left-info shadow">
                 <div class="card-body">
-                    <h3 class="display-4 mb-0">{{ total_ewaste }}</h3>
-                    <p class="mt-2 mb-0">E-Waste Items</p>
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <i class="fas fa-laptop fa-2x text-info"></i>
+                        </div>
+                        <div class="col">
+                            <h3 class="display-5 mb-0 fw-bold">{{ total_ewaste }}</h3>
+                            <p class="mt-2 mb-0">E-Waste Items</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-center h-100">
+        <div class="col-md-3 col-sm-6 mb-3">
+            <div class="card text-center h-100 border-left-success shadow">
                 <div class="card-body">
-                    <h3 class="display-4 mb-0">{{ completed_pickups }}</h3>
-                    <p class="mt-2 mb-0">Completed Pickups</p>
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <i class="fas fa-check-circle fa-2x text-success"></i>
+                        </div>
+                        <div class="col">
+                            <h3 class="display-5 mb-0 fw-bold">{{ completed_pickups }}</h3>
+                            <p class="mt-2 mb-0">Completed Pickups</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Analytics Graphs Section -->
+    <div class="row mb-4">
+        <!-- Monthly Pickups Chart -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-chart-line me-2 text-primary"></i>
+                        Monthly Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyActivityChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Status Distribution -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-chart-pie me-2 text-info"></i>
+                        Pickup Status Distribution
+                    </h5>
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <canvas id="statusDonutChart" height="260"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <!-- Top E-Waste Types -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-laptop me-2 text-success"></i>
+                        Top E-Waste Types by Eco Points
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="ewasteBarChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Users -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-trophy me-2 text-warning"></i>
+                        Top Users by Eco Points
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="topUsersChart" height="300"></canvas>
                 </div>
             </div>
         </div>
     </div>
     
     <!-- Admin Navigation Tabs -->
-    <div class="card mb-4">
-        <div class="card-header">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-light">
             <ul class="nav nav-tabs card-header-tabs" id="adminTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">Overview</button>
+                    <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
+                        <i class="fas fa-th-large me-1"></i> Overview
+                    </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="pickups-tab" data-bs-toggle="tab" data-bs-target="#pickups" type="button" role="tab" aria-controls="pickups" aria-selected="false">Pickups</button>
+                    <button class="nav-link" id="pickups-tab" data-bs-toggle="tab" data-bs-target="#pickups" type="button" role="tab" aria-controls="pickups" aria-selected="false">
+                        <i class="fas fa-truck me-1"></i> Pickups
+                    </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="false">Users</button>
+                    <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="false">
+                        <i class="fas fa-users me-1"></i> Users
+                    </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="rewards-tab" data-bs-toggle="tab" data-bs-target="#rewards" type="button" role="tab" aria-controls="rewards" aria-selected="false">Rewards</button>
+                    <button class="nav-link" id="rewards-tab" data-bs-toggle="tab" data-bs-target="#rewards" type="button" role="tab" aria-controls="rewards" aria-selected="false">
+                        <i class="fas fa-gift me-1"></i> Rewards
+                    </button>
                 </li>
             </ul>
         </div>
@@ -76,9 +177,12 @@
                 <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
                     <div class="row">
                         <div class="col-md-6">
-                            <div class="card mb-4">
-                                <div class="card-header">
-                                    <h5 class="mb-0">Recent Pickups</h5>
+                            <div class="card mb-4 shadow-sm">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0 fw-bold">
+                                        <i class="fas fa-calendar-check me-2 text-primary"></i>
+                                        Recent Pickups
+                                    </h5>
                                 </div>
                                 <div class="card-body">
                                     {% if upcoming_pickups %}
@@ -113,7 +217,7 @@
                                             </table>
                                         </div>
                                         <div class="text-center mt-3">
-                                            <a href="{{ url_for('admin_pickups') }}" class="btn btn-sm btn-outline-light">View All Pickups</a>
+                                            <a href="{{ url_for('admin_pickups') }}" class="btn btn-sm btn-primary">View All Pickups</a>
                                         </div>
                                     {% else %}
                                         <p class="text-center py-3">No recent pickups.</p>
@@ -122,9 +226,12 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="card mb-4">
-                                <div class="card-header">
-                                    <h5 class="mb-0">Recent Users</h5>
+                            <div class="card mb-4 shadow-sm">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0 fw-bold">
+                                        <i class="fas fa-user-plus me-2 text-info"></i>
+                                        Recent Users
+                                    </h5>
                                 </div>
                                 <div class="card-body">
                                     {% if recent_users %}
@@ -160,14 +267,17 @@
                     
                     <div class="row">
                         <div class="col-md-12">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 class="mb-0">E-Waste Collection Statistics</h5>
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0 fw-bold">
+                                        <i class="fas fa-recycle me-2 text-success"></i>
+                                        E-Waste Collection Statistics
+                                    </h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <h6>Most Common E-Waste Types</h6>
+                                            <h6 class="fw-bold mb-3">Most Common E-Waste Types</h6>
                                             <div class="table-responsive">
                                                 <table class="table table-sm">
                                                     <thead>
@@ -188,8 +298,16 @@
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <h6>Collection Timeline</h6>
-                                            <canvas id="pickupChart" height="200"></canvas>
+                                            <h6 class="fw-bold mb-3">Total Eco Points: {{ total_eco_points }}</h6>
+                                            <div class="progress mb-4" style="height: 25px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%">
+                                                    {{ total_eco_points }} Points
+                                                </div>
+                                            </div>
+                                            <p class="small text-muted">
+                                                <i class="fas fa-leaf me-1"></i> 
+                                                Each eco point represents a significant contribution to environmental sustainability.
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -201,25 +319,43 @@
                 <!-- Quick access to other tabs -->
                 <div class="tab-pane fade" id="pickups" role="tabpanel" aria-labelledby="pickups-tab">
                     <div class="text-center py-4">
-                        <h5>Manage E-Waste Pickups</h5>
-                        <p>View and update the status of scheduled pickups</p>
-                        <a href="{{ url_for('admin_pickups') }}" class="btn btn-primary">Go to Pickups Management</a>
+                        <div class="mb-4">
+                            <i class="fas fa-truck fa-3x text-primary mb-3"></i>
+                            <h5 class="fw-bold">Manage E-Waste Pickups</h5>
+                            <p>View and update the status of scheduled pickups</p>
+                        </div>
+                        <a href="{{ url_for('admin_pickups') }}" class="btn btn-primary">
+                            <i class="fas fa-arrow-right me-2"></i>
+                            Go to Pickups Management
+                        </a>
                     </div>
                 </div>
                 
                 <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
                     <div class="text-center py-4">
-                        <h5>Manage Users</h5>
-                        <p>View and manage user accounts and their activities</p>
-                        <a href="{{ url_for('admin_users') }}" class="btn btn-primary">Go to User Management</a>
+                        <div class="mb-4">
+                            <i class="fas fa-users fa-3x text-info mb-3"></i>
+                            <h5 class="fw-bold">Manage Users</h5>
+                            <p>View and manage user accounts and their activities</p>
+                        </div>
+                        <a href="{{ url_for('admin_users') }}" class="btn btn-info text-white">
+                            <i class="fas fa-arrow-right me-2"></i>
+                            Go to User Management
+                        </a>
                     </div>
                 </div>
                 
                 <div class="tab-pane fade" id="rewards" role="tabpanel" aria-labelledby="rewards-tab">
                     <div class="text-center py-4">
-                        <h5>Manage Rewards</h5>
-                        <p>Add, edit, or remove rewards that users can redeem with their eco-points</p>
-                        <a href="{{ url_for('admin_rewards') }}" class="btn btn-primary">Go to Rewards Management</a>
+                        <div class="mb-4">
+                            <i class="fas fa-gift fa-3x text-warning mb-3"></i>
+                            <h5 class="fw-bold">Manage Rewards</h5>
+                            <p>Add, edit, or remove rewards that users can redeem with their eco-points</p>
+                        </div>
+                        <a href="{{ url_for('admin_rewards') }}" class="btn btn-warning">
+                            <i class="fas fa-arrow-right me-2"></i>
+                            Go to Rewards Management
+                        </a>
                     </div>
                 </div>
             </div>
@@ -229,30 +365,33 @@
     <!-- Quick Actions -->
     <div class="row">
         <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Quick Actions</h5>
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-bolt me-2 text-warning"></i>
+                        Quick Actions
+                    </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <a href="{{ url_for('admin_pickups') }}" class="btn btn-outline-light d-block">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{{ url_for('admin_pickups') }}" class="btn btn-outline-primary d-block">
                                 <i class="fas fa-truck fa-fw me-2"></i> Manage Pickups
                             </a>
                         </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{{ url_for('admin_rewards') }}" class="btn btn-outline-light d-block">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{{ url_for('admin_rewards') }}" class="btn btn-outline-warning d-block">
                                 <i class="fas fa-gift fa-fw me-2"></i> Manage Rewards
                             </a>
                         </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-light d-block">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-info d-block">
                                 <i class="fas fa-users fa-fw me-2"></i> Manage Users
                             </a>
                         </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{{ url_for('index') }}" class="btn btn-outline-light d-block">
-                                <i class="fas fa-home fa-fw me-2"></i> View Website
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <a href="{{ url_for('admin_bulk_pickups') }}" class="btn btn-outline-success d-block">
+                                <i class="fas fa-boxes fa-fw me-2"></i> Bulk Pickups
                             </a>
                         </div>
                     </div>
@@ -264,28 +403,195 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Sample data for pickup chart
-        const ctx = document.getElementById('pickupChart').getContext('2d');
-        new Chart(ctx, {
+        // Parse JSON data from Flask
+        const months = {{ months_json|safe }};
+        const pickupsData = {{ pickups_data_json|safe }};
+        const userRegData = {{ user_reg_data_json|safe }};
+        const statusLabels = {{ status_labels_json|safe }};
+        const statusData = {{ status_data_json|safe }};
+        const statusColors = {{ status_colors_json|safe }};
+        const ecoTypes = {{ eco_types_json|safe }};
+        const ecoPoints = {{ eco_points_json|safe }};
+        const topUserNames = {{ top_user_names_json|safe }};
+        const topUserPoints = {{ top_user_points_json|safe }};
+        
+        // Set Chart.js default options for all charts
+        Chart.defaults.color = '#e9ecef';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+        
+        // 1. Monthly Activity Chart
+        const activityCtx = document.getElementById('monthlyActivityChart').getContext('2d');
+        new Chart(activityCtx, {
             type: 'line',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                labels: months,
+                datasets: [
+                    {
+                        label: 'Pickups',
+                        data: pickupsData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'New Users',
+                        data: userRegData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Monthly Activity Trends'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // 2. Status Donut Chart
+        const donutCtx = document.getElementById('statusDonutChart').getContext('2d');
+        new Chart(donutCtx, {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
                 datasets: [{
-                    label: 'Pickups',
-                    data: [5, 10, 15, 20, 25, 30], // Placeholder data
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 2,
-                    tension: 0.4
+                    data: statusData,
+                    backgroundColor: statusColors,
+                    borderWidth: 1
                 }]
             },
             options: {
                 responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Pickup Status Distribution'
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+        
+        // 3. Top E-Waste Types Bar Chart
+        const ewasteCtx = document.getElementById('ewasteBarChart').getContext('2d');
+        new Chart(ewasteCtx, {
+            type: 'bar',
+            data: {
+                labels: ecoTypes,
+                datasets: [{
+                    label: 'Eco Points',
+                    data: ecoPoints,
+                    backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                    borderColor: 'rgba(40, 167, 69, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'E-Waste Types by Eco Points'
+                    }
+                },
                 scales: {
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Eco Points'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+        
+        // 4. Top Users Chart
+        const usersCtx = document.getElementById('topUsersChart').getContext('2d');
+        const gradientFill = usersCtx.createLinearGradient(0, 0, 0, 400);
+        gradientFill.addColorStop(0, 'rgba(255, 193, 7, 0.8)');
+        gradientFill.addColorStop(1, 'rgba(255, 193, 7, 0.2)');
+        
+        new Chart(usersCtx, {
+            type: 'bar',
+            data: {
+                labels: topUserNames,
+                datasets: [{
+                    label: 'Eco Points',
+                    data: topUserPoints,
+                    backgroundColor: gradientFill,
+                    borderColor: 'rgba(255, 193, 7, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Top Users by Eco Points'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Eco Points'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
                     }
                 }
             }

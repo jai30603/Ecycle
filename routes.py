@@ -981,14 +981,126 @@ def admin_dashboard():
     # Get recent redemptions
     recent_redemptions = Redemption.query.order_by(Redemption.redeemed_at.desc()).limit(5).all()
     
-    # Get e-waste statistics
-    from sqlalchemy import func
+    # Import necessary SQLAlchemy functions
+    from sqlalchemy import func, extract, text
+    import json
+    from datetime import datetime, timedelta
+    
+    # Get e-waste statistics for pie chart
     ewaste_stats_query = db.session.query(
         Ewaste.ewaste_type.label('type'),
         func.count(Ewaste.id).label('count')
     ).group_by(Ewaste.ewaste_type).order_by(func.count(Ewaste.id).desc()).limit(5).all()
     
     ewaste_stats = [{'type': item.type, 'count': item.count} for item in ewaste_stats_query] if ewaste_stats_query else []
+    
+    # Calculate total eco points
+    total_eco_points = db.session.query(func.sum(User.eco_points)).scalar() or 0
+    
+    # Get monthly pickup data for the past 6 months
+    six_months_ago = datetime.now() - timedelta(days=180)
+    monthly_pickups = db.session.query(
+        extract('month', Schedule.pickup_date).label('month'),
+        extract('year', Schedule.pickup_date).label('year'),
+        func.count(Schedule.id).label('count')
+    ).filter(Schedule.pickup_date >= six_months_ago).group_by(
+        extract('month', Schedule.pickup_date),
+        extract('year', Schedule.pickup_date)
+    ).order_by(
+        extract('year', Schedule.pickup_date),
+        extract('month', Schedule.pickup_date)
+    ).all()
+    
+    # Format monthly data for Chart.js
+    months = []
+    pickups_data = []
+    
+    current_month = datetime.now().month
+    current_year = datetime.now().year
+    
+    # Initialize with last 6 months
+    for i in range(6):
+        month_idx = (current_month - i - 1) % 12 + 1
+        year = current_year if month_idx <= current_month else current_year - 1
+        month_name = datetime(year, month_idx, 1).strftime('%b %Y')
+        months.insert(0, month_name)
+        pickups_data.insert(0, 0)  # Default to 0
+    
+    # Fill in actual data
+    for mp in monthly_pickups:
+        month_idx = int(mp.month)
+        year = int(mp.year)
+        month_name = datetime(year, month_idx, 1).strftime('%b %Y')
+        if month_name in months:
+            idx = months.index(month_name)
+            pickups_data[idx] = mp.count
+    
+    # Get user registration growth
+    monthly_registrations = db.session.query(
+        extract('month', User.created_at).label('month'),
+        extract('year', User.created_at).label('year'),
+        func.count(User.id).label('count')
+    ).filter(User.created_at >= six_months_ago).group_by(
+        extract('month', User.created_at),
+        extract('year', User.created_at)
+    ).order_by(
+        extract('year', User.created_at),
+        extract('month', User.created_at)
+    ).all()
+    
+    # Format user registration data
+    user_reg_data = []
+    for i in range(6):
+        user_reg_data.insert(0, 0)  # Default to 0
+    
+    for ur in monthly_registrations:
+        month_idx = int(ur.month)
+        year = int(ur.year)
+        month_name = datetime(year, month_idx, 1).strftime('%b %Y')
+        if month_name in months:
+            idx = months.index(month_name)
+            user_reg_data[idx] = ur.count
+    
+    # Get collection status distribution for donut chart
+    status_distribution = db.session.query(
+        Schedule.status.label('status'),
+        func.count(Schedule.id).label('count')
+    ).group_by(Schedule.status).all()
+    
+    status_labels = []
+    status_data = []
+    status_colors = []
+    
+    color_map = {
+        'Pending': '#ffc107',  # warning
+        'Scheduled': '#0d6efd',  # primary
+        'Collected': '#198754',  # success
+        'Cancelled': '#dc3545'   # danger
+    }
+    
+    for status in status_distribution:
+        status_labels.append(status.status)
+        status_data.append(status.count)
+        status_colors.append(color_map.get(status.status, '#6c757d'))  # default to secondary
+    
+    # Get eco points by e-waste type
+    eco_by_type = db.session.query(
+        Ewaste.ewaste_type.label('type'),
+        func.sum(Ewaste.eco_points).label('points')
+    ).group_by(Ewaste.ewaste_type).order_by(func.sum(Ewaste.eco_points).desc()).limit(5).all()
+    
+    eco_types = []
+    eco_points = []
+    
+    for item in eco_by_type:
+        if item.points:  # Only add if points isn't None
+            eco_types.append(item.type)
+            eco_points.append(int(item.points))
+    
+    # Get top 5 users by eco points
+    top_users_query = User.query.order_by(User.eco_points.desc()).limit(5).all()
+    top_user_names = [user.username for user in top_users_query]
+    top_user_points = [user.eco_points for user in top_users_query]
     
     return render_template('admin/dashboard.html', 
                           total_users=total_users,
@@ -998,7 +1110,18 @@ def admin_dashboard():
                           recent_users=recent_users,
                           upcoming_pickups=upcoming_pickups,
                           recent_redemptions=recent_redemptions,
-                          ewaste_stats=ewaste_stats)
+                          ewaste_stats=ewaste_stats,
+                          total_eco_points=total_eco_points,
+                          months_json=json.dumps(months),
+                          pickups_data_json=json.dumps(pickups_data),
+                          user_reg_data_json=json.dumps(user_reg_data),
+                          status_labels_json=json.dumps(status_labels),
+                          status_data_json=json.dumps(status_data),
+                          status_colors_json=json.dumps(status_colors),
+                          eco_types_json=json.dumps(eco_types),
+                          eco_points_json=json.dumps(eco_points),
+                          top_user_names_json=json.dumps(top_user_names),
+                          top_user_points_json=json.dumps(top_user_points))
 
 # Admin user management
 @app.route('/admin/users')
