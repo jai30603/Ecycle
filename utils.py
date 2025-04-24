@@ -225,15 +225,19 @@ def generate_disposal_certificate(user, ewaste, schedule):
     
     # Add logo (if available) or title
     try:
-        # Specify the correct path to your logo
-        logo_path = os.path.join('static', 'img', 'ecycle-logo.png')
+        # Specify the correct path to your logo - use absolute path for better reliability
+        logo_path = os.path.abspath(os.path.join('static', 'img', 'ecycle-logo.png'))
+        current_app.logger.info(f"Looking for logo at: {logo_path}")
+        
         if os.path.exists(logo_path):
+            current_app.logger.info(f"Found logo at: {logo_path}")
             logo = Image(logo_path)
             logo.drawHeight = 1.5*inch
             logo.drawWidth = 1.5*inch
             elements.append(logo)
         else:
             # If logo doesn't exist, just use text
+            current_app.logger.warning(f"Logo not found at: {logo_path}")
             elements.append(Paragraph('E-CYCLE', styles['CertificateTitle']))
     except Exception as e:
         current_app.logger.error(f"Error adding logo to certificate: {str(e)}")
