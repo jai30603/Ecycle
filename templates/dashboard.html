@@ -130,7 +130,7 @@
     </div>
 </div>
 
-<div class="row g-4">
+<div class="row g-4 mb-4">
     <!-- Recent Redemptions -->
     <div class="col-md-6">
         <div class="card h-100">
@@ -211,6 +211,54 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <h3 class="mb-3">Quick Actions</h3>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-calendar-plus text-primary fs-2"></i>
+                </div>
+                <h5 class="card-title">Schedule Pickup</h5>
+                <p class="card-text">Schedule a pickup for your electronic waste and earn eco points.</p>
+                <a href="{{ url_for('schedule') }}" class="btn btn-primary">Schedule Now</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-certificate text-success fs-2"></i>
+                </div>
+                <h5 class="card-title">My Certificates</h5>
+                <p class="card-text">View and download disposal certificates for your completed pickups.</p>
+                <a href="{{ url_for('certificates') }}" class="btn btn-success">View Certificates</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    <i class="fas fa-award text-info fs-2"></i>
+                </div>
+                <h5 class="card-title">Redeem Rewards</h5>
+                <p class="card-text">Use your eco points to redeem exclusive rewards and offers.</p>
+                <a href="{{ url_for('rewards') }}" class="btn btn-info">Browse Rewards</a>
             </div>
         </div>
     </div>
