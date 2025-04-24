@@ -121,6 +121,37 @@ def dashboard():
     # Get recent rewards
     recent_redemptions = Redemption.query.filter_by(user_id=user_id).order_by(Redemption.redeemed_at.desc()).limit(3).all()
     
+    # Get top users by eco points for leaderboard
+    eco_leaders = db.session.query(
+        User.id, 
+        User.username, 
+        User.eco_points
+    ).order_by(
+        User.eco_points.desc()
+    ).limit(5).all()
+    
+    # Get top users by e-waste recycled
+    ewaste_leaders = db.session.query(
+        User.id,
+        User.username,
+        db.func.count(Ewaste.id).label('items_count')
+    ).join(
+        Ewaste, User.id == Ewaste.user_id
+    ).group_by(
+        User.id, User.username
+    ).order_by(
+        db.func.count(Ewaste.id).desc()
+    ).limit(5).all()
+    
+    # Calculate user's rank in leaderboard
+    user_rank_query = db.session.query(
+        db.func.count(User.id) + 1
+    ).filter(
+        User.eco_points > user.eco_points
+    ).scalar()
+    
+    user_rank = user_rank_query if user_rank_query else 1
+    
     return render_template('dashboard.html', 
                           user=user, 
                           pickups=pickups, 
@@ -128,7 +159,10 @@ def dashboard():
                           total_items=total_items,
                           total_carbon_saved=total_carbon_saved,
                           completed_pickups=completed_pickups,
-                          recent_redemptions=recent_redemptions)
+                          recent_redemptions=recent_redemptions,
+                          eco_leaders=eco_leaders,
+                          ewaste_leaders=ewaste_leaders,
+                          user_rank=user_rank)
 
 # Schedule new pickup (form)
 @app.route('/schedule', methods=['GET', 'POST'])
