@@ -39,8 +39,14 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('schedule') }}">Schedule Pickup</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="pickupDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Schedule Pickup
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="pickupDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('schedule') }}">Individual Pickup</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('bulk_pickup') }}">Organization Bulk Pickup</a></li>
+                        </ul>
                     </li>
 
                     <li class="nav-item">
@@ -61,7 +67,8 @@
                         <ul class="dropdown-menu" aria-labelledby="adminDropdown">
                             <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('admin_users') }}">Users</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin_pickups') }}">Pickups</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_pickups') }}">Individual Pickups</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_bulk_pickups') }}">Bulk Pickups</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('admin_inventory') }}">Inventory</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('admin_rewards') }}">Rewards</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('admin_redemptions') }}">Redemptions</a></li>

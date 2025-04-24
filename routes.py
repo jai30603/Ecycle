@@ -1,14 +1,20 @@
 import os
 import tempfile
+import json
+import uuid
+import csv
+import pandas as pd
+from io import BytesIO, StringIO
 from datetime import datetime, timedelta
-from flask import render_template, request, redirect, url_for, flash, session, jsonify, make_response
+from flask import render_template, request, redirect, url_for, flash, session, jsonify, make_response, send_file, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from app import app, db
-from models import User, Admin, Ewaste, Schedule, Reward, Redemption
+from models import User, Admin, Ewaste, Schedule, Reward, Redemption, BulkPickup, BulkEwasteItem, OrganizationType, EwasteCondition, BulkPickupStatus
 from utils import get_ewaste_news, calculate_carbon_footprint, generate_disposal_certificate
 from api import classify_image
-from forms import LoginForm, RegisterForm, ScheduleForm, AdminLoginForm, RewardForm
+from forms import LoginForm, RegisterForm, ScheduleForm, AdminLoginForm, RewardForm, BulkPickupForm, BulkEwasteItemForm
+from sqlalchemy import func, desc
 
 @app.route('/')
 def index():
@@ -82,6 +88,368 @@ def logout():
     session.pop('admin_id', None)
     flash('You have been logged out.', 'success')
     return redirect(url_for('index'))
+
+# Bulk pickup form
+@app.route('/bulk-pickup', methods=['GET', 'POST'])
+def bulk_pickup():
+    if 'user_id' not in session:
+        flash('Please login to schedule a bulk pickup.', 'warning')
+        return redirect(url_for('login'))
+        
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+    
+    # If user doesn't exist for some reason (maybe was deleted), redirect to login
+    if not user:
+        flash('User account not found. Please login again.', 'danger')
+        session.pop('user_id', None)
+        session.pop('username', None)
+        session.pop('eco_points', None)
+        return redirect(url_for('login'))
+    
+    # Store eco points in session for display in navbar
+    session['eco_points'] = user.eco_points
+    
+    form = BulkPickupForm()
+    
+    if form.validate_on_submit():
+        try:
+            # Create new bulk pickup entry
+            bulk_pickup = BulkPickup(
+                user_id=user_id,
+                organization_name=form.organization_name.data,
+                organization_type=OrganizationType[form.organization_type.data],
+                contact_person=form.contact_person.data,
+                contact_email=form.contact_email.data,
+                contact_phone=form.contact_phone.data,
+                pickup_address=form.pickup_address.data,
+                gstin=form.gstin.data,
+                preferred_pickup_date=form.preferred_pickup_date.data,
+                special_instructions=form.special_instructions.data,
+                request_certificate=form.request_certificate.data,
+                request_tax_receipt=form.request_tax_receipt.data,
+                status=BulkPickupStatus.PENDING
+            )
+            
+            db.session.add(bulk_pickup)
+            db.session.flush()  # Get the bulk_pickup.id without committing
+            
+            # Process item data from the form
+            ewaste_types = request.form.getlist('ewaste_type[]')
+            brand_models = request.form.getlist('brand_model[]')
+            quantities = request.form.getlist('quantity[]')
+            conditions = request.form.getlist('condition[]')
+            notes_list = request.form.getlist('notes[]')
+            
+            total_items = 0
+            total_eco_points = 0
+            
+            # Process each item
+            for i in range(len(ewaste_types)):
+                if i < len(ewaste_types) and ewaste_types[i]:
+                    ewaste_type = ewaste_types[i]
+                    brand_model = brand_models[i] if i < len(brand_models) else ""
+                    quantity = int(quantities[i]) if i < len(quantities) and quantities[i].isdigit() else 1
+                    condition_value = conditions[i] if i < len(conditions) else "WORKING"
+                    notes = notes_list[i] if i < len(notes_list) else ""
+                    
+                    # Calculate estimated price and eco points
+                    price_map = {
+                        'Desktop-PC': 150,
+                        'Laptop': 120,
+                        'Server': 200,
+                        'Smartphone': 70,
+                        'Tablet': 80,
+                        'Flat-Panel-TV': 90,
+                        'Refrigerator': 70,
+                        'Washing-Machine': 70,
+                        'Microwave': 50,
+                        'Other': 30
+                    }
+                    
+                    condition_multiplier = {
+                        'WORKING': 1.2,
+                        'DAMAGED': 0.8,
+                        'SCRAP': 0.5
+                    }
+                    
+                    base_price = price_map.get(ewaste_type, 30)
+                    estimated_price = int(base_price * condition_multiplier.get(condition_value, 1.0))
+                    eco_points = estimated_price // 10  # 1 eco point for every $10 of estimated value
+                    
+                    # Create new bulk e-waste item
+                    item = BulkEwasteItem(
+                        bulk_pickup_id=bulk_pickup.id,
+                        ewaste_type=ewaste_type,
+                        brand_model=brand_model,
+                        quantity=quantity,
+                        condition=EwasteCondition[condition_value],
+                        additional_notes=notes,
+                        estimated_price_per_unit=estimated_price,
+                        eco_points_per_unit=eco_points
+                    )
+                    
+                    db.session.add(item)
+                    
+                    # Update totals
+                    total_items += quantity
+                    total_eco_points += (eco_points * quantity)
+            
+            # If a bulk file was uploaded, process it
+            if form.bulk_file.data:
+                file = form.bulk_file.data
+                if file.filename.endswith('.csv'):
+                    # Process CSV file
+                    stream = StringIO(file.read().decode('utf-8-sig'))
+                    csv_reader = csv.DictReader(stream)
+                    
+                    for row in csv_reader:
+                        try:
+                            ewaste_type = row.get('Device Type', 'Other')
+                            brand_model = row.get('Model', '')
+                            quantity = int(row.get('Quantity', 1))
+                            condition_str = row.get('Condition', 'WORKING').upper()
+                            notes = row.get('Notes', '')
+                            
+                            # Map the condition string to enum value
+                            if 'WORK' in condition_str:
+                                condition = EwasteCondition.WORKING
+                            elif 'DAMAGE' in condition_str:
+                                condition = EwasteCondition.DAMAGED
+                            else:
+                                condition = EwasteCondition.SCRAP
+                            
+                            # Calculate price and points
+                            base_price = price_map.get(ewaste_type, 30)
+                            estimated_price = int(base_price * condition_multiplier.get(condition.name, 1.0))
+                            eco_points = estimated_price // 10
+                            
+                            # Create new bulk e-waste item
+                            item = BulkEwasteItem(
+                                bulk_pickup_id=bulk_pickup.id,
+                                ewaste_type=ewaste_type,
+                                brand_model=brand_model,
+                                quantity=quantity,
+                                condition=condition,
+                                additional_notes=notes,
+                                estimated_price_per_unit=estimated_price,
+                                eco_points_per_unit=eco_points
+                            )
+                            
+                            db.session.add(item)
+                            
+                            # Update totals
+                            total_items += quantity
+                            total_eco_points += (eco_points * quantity)
+                        except Exception as e:
+                            current_app.logger.error(f"Error processing CSV row: {str(e)}")
+                
+                elif file.filename.endswith(('.xlsx', '.xls')):
+                    # Process Excel file
+                    try:
+                        df = pd.read_excel(file)
+                        
+                        for index, row in df.iterrows():
+                            try:
+                                ewaste_type = row.get('Device Type', 'Other')
+                                brand_model = row.get('Model', '')
+                                quantity = int(row.get('Quantity', 1))
+                                condition_str = str(row.get('Condition', 'WORKING')).upper()
+                                notes = row.get('Notes', '')
+                                
+                                # Map the condition string to enum value
+                                if 'WORK' in condition_str:
+                                    condition = EwasteCondition.WORKING
+                                elif 'DAMAGE' in condition_str:
+                                    condition = EwasteCondition.DAMAGED
+                                else:
+                                    condition = EwasteCondition.SCRAP
+                                
+                                # Calculate price and points
+                                base_price = price_map.get(ewaste_type, 30)
+                                estimated_price = int(base_price * condition_multiplier.get(condition.name, 1.0))
+                                eco_points = estimated_price // 10
+                                
+                                # Create new bulk e-waste item
+                                item = BulkEwasteItem(
+                                    bulk_pickup_id=bulk_pickup.id,
+                                    ewaste_type=ewaste_type,
+                                    brand_model=brand_model,
+                                    quantity=quantity,
+                                    condition=condition,
+                                    additional_notes=notes,
+                                    estimated_price_per_unit=estimated_price,
+                                    eco_points_per_unit=eco_points
+                                )
+                                
+                                db.session.add(item)
+                                
+                                # Update totals
+                                total_items += quantity
+                                total_eco_points += (eco_points * quantity)
+                            except Exception as e:
+                                current_app.logger.error(f"Error processing Excel row: {str(e)}")
+                    except Exception as e:
+                        current_app.logger.error(f"Error processing Excel file: {str(e)}")
+            
+            # Update bulk pickup with item totals
+            bulk_pickup.total_items = total_items
+            bulk_pickup.estimated_eco_points = total_eco_points
+            
+            # Add eco points to user's account
+            user.eco_points += total_eco_points
+            session['eco_points'] = user.eco_points
+            
+            # Calculate carbon savings
+            carbon_saved = sum(calculate_carbon_footprint(item.ewaste_type, item.quantity) for item in bulk_pickup.ewaste_items)
+            user.carbon_saved += carbon_saved
+            
+            db.session.commit()
+            
+            flash(f'Bulk pickup request submitted successfully! You earned {total_eco_points} eco points and saved {carbon_saved:.1f} kg of CO2!', 'success')
+            return redirect(url_for('history'))
+            
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error submitting bulk pickup: {str(e)}")
+            flash(f'An error occurred while submitting your request: {str(e)}', 'danger')
+    
+    return render_template('bulk_pickup.html', form=form)
+
+# Admin bulk pickups management
+@app.route('/admin/bulk-pickups')
+def admin_bulk_pickups():
+    if 'admin_id' not in session:
+        flash('Please login as admin to access this page.', 'warning')
+        return redirect(url_for('admin_login'))
+    
+    # Get all bulk pickups with related data
+    bulk_pickups = BulkPickup.query.order_by(BulkPickup.created_at.desc()).all()
+    
+    # Calculate statistics
+    stats = {
+        'pending': BulkPickup.query.filter_by(status=BulkPickupStatus.PENDING).count(),
+        'scheduled': BulkPickup.query.filter_by(status=BulkPickupStatus.SCHEDULED).count(),
+        'collected': BulkPickup.query.filter_by(status=BulkPickupStatus.COLLECTED).count(),
+        'verified': BulkPickup.query.filter_by(status=BulkPickupStatus.VERIFIED).count(),
+        'total_items': db.session.query(func.sum(BulkPickup.total_items)).scalar() or 0,
+        'total_eco_points': db.session.query(func.sum(BulkPickup.actual_eco_points)).scalar() or 0
+    }
+    
+    # Get recent activity (status changes)
+    recent_activity = []
+    for pickup in bulk_pickups[:5]:
+        recent_activity.append({
+            'organization_name': pickup.organization_name,
+            'status': pickup.status.value,
+            'time': pickup.updated_at.strftime('%Y-%m-%d %H:%M') if pickup.updated_at else pickup.created_at.strftime('%Y-%m-%d %H:%M')
+        })
+    
+    return render_template('admin/bulk_pickups.html', bulk_pickups=bulk_pickups, stats=stats, recent_activity=recent_activity)
+
+# Admin bulk pickup details
+@app.route('/admin/bulk-pickups/<int:pickup_id>')
+def admin_bulk_pickup_details(pickup_id):
+    if 'admin_id' not in session:
+        flash('Please login as admin to access this page.', 'warning')
+        return redirect(url_for('admin_login'))
+    
+    # Get the bulk pickup with all related items
+    bulk_pickup = BulkPickup.query.get_or_404(pickup_id)
+    items = BulkEwasteItem.query.filter_by(bulk_pickup_id=pickup_id).all()
+    user = User.query.get(bulk_pickup.user_id)
+    
+    return render_template('admin/bulk_pickup_details.html', 
+                          bulk_pickup=bulk_pickup, 
+                          items=items,
+                          user=user)
+
+# Admin update bulk pickup status
+@app.route('/admin/bulk-pickups/<int:pickup_id>/update', methods=['POST'])
+def admin_update_bulk_pickup(pickup_id):
+    if 'admin_id' not in session:
+        flash('Please login as admin to access this page.', 'warning')
+        return redirect(url_for('admin_login'))
+    
+    bulk_pickup = BulkPickup.query.get_or_404(pickup_id)
+    old_status = bulk_pickup.status
+    
+    # Update the pickup status and assigned team
+    new_status = request.form.get('status')
+    if new_status and hasattr(BulkPickupStatus, new_status):
+        bulk_pickup.status = BulkPickupStatus[new_status]
+    
+    bulk_pickup.assigned_team = request.form.get('assigned_team', bulk_pickup.assigned_team)
+    
+    # Update actual eco points if provided
+    if request.form.get('actual_eco_points'):
+        try:
+            bulk_pickup.actual_eco_points = int(request.form.get('actual_eco_points'))
+        except:
+            pass
+    
+    # If status changed from non-collected to collected, generate certificate
+    if old_status != BulkPickupStatus.COLLECTED and bulk_pickup.status == BulkPickupStatus.COLLECTED:
+        if bulk_pickup.request_certificate:
+            try:
+                # Get the user and items
+                user = User.query.get(bulk_pickup.user_id)
+                items = BulkEwasteItem.query.filter_by(bulk_pickup_id=pickup_id).all()
+                
+                # Generate certificate PDF
+                certificate_buffer = generate_bulk_disposal_certificate(user, bulk_pickup, items)
+                
+                # Save the certificate to a file
+                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                certificate_filename = f"bulk_certificate_{pickup_id}_{timestamp}.pdf"
+                certificate_path = os.path.join('static', 'certificates', certificate_filename)
+                
+                # Ensure the certificates directory exists
+                os.makedirs(os.path.join('static', 'certificates'), exist_ok=True)
+                
+                # Write the PDF to file
+                with open(certificate_path, 'wb') as f:
+                    f.write(certificate_buffer.read())
+                
+                # Update the bulk pickup with the certificate path
+                bulk_pickup.certificate_path = certificate_path
+                
+            except Exception as e:
+                current_app.logger.error(f"Error generating bulk certificate: {str(e)}")
+    
+    db.session.commit()
+    flash('Bulk pickup updated successfully!', 'success')
+    return redirect(url_for('admin_bulk_pickups'))
+
+# Admin generate/download bulk certificate
+@app.route('/admin/bulk-pickups/<int:pickup_id>/certificate')
+def admin_bulk_certificate(pickup_id):
+    if 'admin_id' not in session:
+        flash('Please login as admin to access this page.', 'warning')
+        return redirect(url_for('admin_login'))
+    
+    bulk_pickup = BulkPickup.query.get_or_404(pickup_id)
+    
+    # Check if a certificate already exists
+    if bulk_pickup.certificate_path and os.path.exists(bulk_pickup.certificate_path):
+        return send_file(bulk_pickup.certificate_path, as_attachment=True, download_name=f"bulk_certificate_{pickup_id}.pdf")
+    
+    # Otherwise generate a new certificate
+    user = User.query.get(bulk_pickup.user_id)
+    items = BulkEwasteItem.query.filter_by(bulk_pickup_id=pickup_id).all()
+    
+    try:
+        certificate_buffer = generate_bulk_disposal_certificate(user, bulk_pickup, items)
+        return send_file(
+            certificate_buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f"bulk_certificate_{pickup_id}.pdf"
+        )
+    except Exception as e:
+        current_app.logger.error(f"Error generating bulk certificate: {str(e)}")
+        flash('An error occurred while generating the certificate.', 'danger')
+        return redirect(url_for('admin_bulk_pickups'))
 
 # User dashboard
 @app.route('/dashboard')

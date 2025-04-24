@@ -348,3 +348,250 @@ def generate_disposal_certificate(user, ewaste, schedule):
     buffer.seek(0)
     
     return buffer
+
+def generate_bulk_disposal_certificate(user, bulk_pickup, items):
+    """
+    Generate a PDF disposal certificate for a completed bulk e-waste pickup
+    
+    Args:
+        user (User): User who scheduled the pickup
+        bulk_pickup (BulkPickup): The bulk pickup record
+        items (list): List of BulkEwasteItem objects
+        
+    Returns:
+        BytesIO: PDF document as a byte stream
+    """
+    # Create a PDF buffer to store the PDF
+    buffer = BytesIO()
+    
+    # Set up the PDF document
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=72,
+        leftMargin=72,
+        topMargin=72,
+        bottomMargin=72
+    )
+    
+    # Styles for the document
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(
+        name='CertificateTitle',
+        fontName='Helvetica-Bold',
+        fontSize=18,
+        alignment=1,
+        spaceAfter=12
+    ))
+    styles.add(ParagraphStyle(
+        name='CertificateSubTitle',
+        fontName='Helvetica-Bold',
+        fontSize=14,
+        alignment=1,
+        spaceAfter=12
+    ))
+    styles.add(ParagraphStyle(
+        name='Normal-Center',
+        parent=styles['Normal'],
+        alignment=1
+    ))
+    styles.add(ParagraphStyle(
+        name='Bold-Center',
+        parent=styles['BodyText'],
+        fontName='Helvetica-Bold',
+        alignment=1
+    ))
+    
+    # Generate a unique certificate number
+    certificate_number = f"ECO-BULK-{uuid.uuid4().hex[:8].upper()}-{bulk_pickup.id}"
+    
+    # Format dates
+    pickup_date = bulk_pickup.preferred_pickup_date.strftime("%B %d, %Y")
+    issued_date = datetime.now().strftime("%B %d, %Y")
+    
+    # Calculate environmental impact
+    total_carbon_saved = sum(calculate_carbon_footprint(item.ewaste_type, item.quantity) for item in items)
+    total_items = sum(item.quantity for item in items)
+    total_eco_points = bulk_pickup.actual_eco_points or bulk_pickup.estimated_eco_points
+    
+    # Build the document content
+    elements = []
+    
+    # Add logo (if available) or title
+    try:
+        # Specify the correct path to your logo - use absolute path for better reliability
+        logo_path = os.path.abspath(os.path.join('static', 'img', 'ecycle-logo.png'))
+        current_app.logger.info(f"Looking for logo at: {logo_path}")
+        
+        if os.path.exists(logo_path):
+            current_app.logger.info(f"Found logo at: {logo_path}")
+            logo = Image(logo_path)
+            logo.drawHeight = 1.5*inch
+            logo.drawWidth = 1.5*inch
+            elements.append(logo)
+        else:
+            # If logo doesn't exist, just use text
+            current_app.logger.warning(f"Logo not found at: {logo_path}")
+            elements.append(Paragraph('E-CYCLE', styles['CertificateTitle']))
+    except Exception as e:
+        current_app.logger.error(f"Error adding logo to certificate: {str(e)}")
+        elements.append(Paragraph('E-CYCLE', styles['CertificateTitle']))
+    
+    # Certificate Title
+    elements.append(Paragraph('BULK E-WASTE DISPOSAL CERTIFICATE', styles['CertificateTitle']))
+    elements.append(Spacer(1, 0.25*inch))
+    
+    # Certificate Number and Date
+    elements.append(Paragraph(f'Certificate Number: {certificate_number}', styles['Bold-Center']))
+    elements.append(Paragraph(f'Issued: {issued_date}', styles['Normal-Center']))
+    elements.append(Spacer(1, 0.5*inch))
+    
+    # Introduction Text
+    org_name = bulk_pickup.organization_name
+    intro_text = f'''
+    This is to certify that <b>{org_name}</b> has responsibly disposed of electronic waste 
+    through the Ecycle platform, contributing to environmental sustainability and proper e-waste management.
+    '''
+    elements.append(Paragraph(intro_text, styles['Normal-Center']))
+    elements.append(Spacer(1, 0.25*inch))
+    
+    # Organization Information
+    org_data = [
+        ['ORGANIZATION INFORMATION', ''],
+        ['Organization Name:', org_name],
+        ['Organization Type:', bulk_pickup.organization_type.value],
+        ['Contact Person:', bulk_pickup.contact_person],
+        ['Contact Email:', bulk_pickup.contact_email],
+        ['Pickup Date:', pickup_date],
+        ['Pickup Reference:', f'#{bulk_pickup.id}']
+    ]
+    
+    if bulk_pickup.gstin:
+        org_data.append(['GSTIN/ID:', bulk_pickup.gstin])
+    
+    org_table = Table(org_data, colWidths=[2*inch, 3*inch])
+    org_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (1, 0), colors.green),
+        ('TEXTCOLOR', (0, 0), (1, 0), colors.white),
+        ('ALIGN', (0, 0), (1, 0), 'CENTER'),
+        ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (1, 0), 8),
+        ('BACKGROUND', (0, 1), (1, len(org_data)-1), colors.white),
+        ('GRID', (0, 0), (1, len(org_data)-1), 1, colors.black),
+        ('VALIGN', (0, 0), (1, len(org_data)-1), 'MIDDLE'),
+    ]))
+    elements.append(org_table)
+    elements.append(Spacer(1, 0.25*inch))
+    
+    # Items Summary
+    elements.append(Paragraph('E-WASTE ITEMS SUMMARY', styles['CertificateSubTitle']))
+    elements.append(Spacer(1, 0.1*inch))
+    
+    # Items table header
+    items_data = [
+        ['Item Type', 'Quantity', 'Condition', 'Carbon Saved (kg)']
+    ]
+    
+    # Add up to 15 items to the certificate (to avoid making it too long)
+    for item in items[:15]:
+        carbon = calculate_carbon_footprint(item.ewaste_type, item.quantity)
+        items_data.append([
+            item.ewaste_type.replace('-', ' '),
+            str(item.quantity),
+            item.condition.value,
+            f'{carbon:.1f}'
+        ])
+    
+    # If there are more items than shown, add a summary row
+    if len(items) > 15:
+        remaining_items = len(items) - 15
+        items_data.append([
+            f'+ {remaining_items} more items',
+            f'{sum(i.quantity for i in items[15:])}',
+            '',
+            f'{sum(calculate_carbon_footprint(i.ewaste_type, i.quantity) for i in items[15:]):.1f}'
+        ])
+    
+    # Create the items table
+    items_table = Table(items_data, colWidths=[2*inch, 1*inch, 1.5*inch, 1.5*inch])
+    items_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (3, 0), colors.blue),
+        ('TEXTCOLOR', (0, 0), (3, 0), colors.white),
+        ('ALIGN', (0, 0), (3, 0), 'CENTER'),
+        ('FONTNAME', (0, 0), (3, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (3, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (3, 0), 8),
+        ('BACKGROUND', (0, 1), (3, len(items_data)-1), colors.white),
+        ('GRID', (0, 0), (3, len(items_data)-1), 1, colors.black),
+        ('VALIGN', (0, 0), (3, len(items_data)-1), 'MIDDLE'),
+        ('ALIGN', (1, 1), (3, len(items_data)-1), 'CENTER'),
+    ]))
+    elements.append(items_table)
+    elements.append(Spacer(1, 0.25*inch))
+    
+    # Environmental Impact Summary
+    impact_data = [
+        ['ENVIRONMENTAL IMPACT SUMMARY', '', ''],
+        ['Total Items:', f'{total_items}', ''],
+        ['Total Carbon Footprint Saved:', f'{total_carbon_saved:.1f}', 'kg CO₂e'],
+        ['Total Eco Points Earned:', f'{total_eco_points}', 'points'],
+        ['Recycling Method:', 'Responsible Recycling & Resource Recovery', '']
+    ]
+    
+    impact_table = Table(impact_data, colWidths=[2*inch, 2*inch, 1*inch])
+    impact_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (2, 0), colors.green),
+        ('TEXTCOLOR', (0, 0), (2, 0), colors.white),
+        ('ALIGN', (0, 0), (2, 0), 'CENTER'),
+        ('FONTNAME', (0, 0), (2, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (2, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (2, 0), 8),
+        ('BACKGROUND', (0, 1), (2, 4), colors.white),
+        ('GRID', (0, 0), (2, 4), 1, colors.black),
+        ('VALIGN', (0, 0), (2, 4), 'MIDDLE'),
+        ('SPAN', (0, 0), (2, 0)),  # Span the header across all columns
+    ]))
+    elements.append(impact_table)
+    elements.append(Spacer(1, 0.25*inch))
+    
+    # Certification Statement
+    certification_text = '''
+    <b>CERTIFICATION STATEMENT</b><br/><br/>
+    This is to certify that the above-mentioned electronic waste items were collected and 
+    processed in accordance with responsible e-waste management practices and applicable 
+    environmental regulations. All data storage devices have been securely wiped or physically 
+    destroyed as appropriate.
+    '''
+    elements.append(Paragraph(certification_text, styles['Normal-Center']))
+    elements.append(Spacer(1, 0.5*inch))
+    
+    # Signature
+    signature_data = [
+        ['', ''],
+        ['_______________________', '_______________________'],
+        ['Authorized Signature', 'Date'],
+        ['Ecycle Recycling Officer', '']
+    ]
+    
+    signature_table = Table(signature_data, colWidths=[2.5*inch, 2.5*inch])
+    signature_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (1, 3), 'CENTER'),
+        ('VALIGN', (0, 0), (1, 3), 'MIDDLE'),
+    ]))
+    elements.append(signature_table)
+    elements.append(Spacer(1, 0.25*inch))
+    
+    # Footer
+    footer_text = '''
+    <i>Thank you for contributing to a sustainable future by responsibly recycling your electronic waste.</i>
+    '''
+    elements.append(Paragraph(footer_text, styles['Normal-Center']))
+    
+    # Build the PDF
+    doc.build(elements)
+    
+    # Reset buffer position to the beginning
+    buffer.seek(0)
+    
+    return buffer
