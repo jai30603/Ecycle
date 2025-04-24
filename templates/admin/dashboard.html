@@ -21,6 +21,40 @@
         </div>
     </div>
     
+    <!-- Quick Actions Section with Border -->
+    <div class="card border border-secondary rounded shadow mb-4">
+        <div class="card-header bg-dark">
+            <h4 class="mb-0">
+                <i class="fas fa-bolt me-2 text-warning"></i>
+                Quick Actions
+            </h4>
+        </div>
+        <div class="card-body py-4">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <a href="{{ url_for('admin_pickups') }}" class="btn btn-outline-primary d-block border-2">
+                        <i class="fas fa-truck fa-fw me-2"></i> Manage Pickups
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <a href="{{ url_for('admin_rewards') }}" class="btn btn-outline-warning d-block border-2">
+                        <i class="fas fa-gift fa-fw me-2"></i> Manage Rewards
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-info d-block border-2">
+                        <i class="fas fa-users fa-fw me-2"></i> Manage Users
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <a href="{{ url_for('admin_bulk_pickups') }}" class="btn btn-outline-success d-block border-2">
+                        <i class="fas fa-boxes fa-fw me-2"></i> Bulk Pickups
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Quick Stats Section with Border -->
     <div class="card border border-secondary rounded shadow mb-4">
         <div class="card-header bg-dark">
@@ -399,39 +433,7 @@
         </div>
     </div>
     
-    <!-- Quick Actions Section with Border -->
-    <div class="card border border-secondary rounded shadow mb-4">
-        <div class="card-header bg-dark">
-            <h4 class="mb-0">
-                <i class="fas fa-bolt me-2 text-warning"></i>
-                Quick Actions
-            </h4>
-        </div>
-        <div class="card-body py-4">
-            <div class="row">
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <a href="{{ url_for('admin_pickups') }}" class="btn btn-outline-primary d-block border-2">
-                        <i class="fas fa-truck fa-fw me-2"></i> Manage Pickups
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <a href="{{ url_for('admin_rewards') }}" class="btn btn-outline-warning d-block border-2">
-                        <i class="fas fa-gift fa-fw me-2"></i> Manage Rewards
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-info d-block border-2">
-                        <i class="fas fa-users fa-fw me-2"></i> Manage Users
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <a href="{{ url_for('admin_bulk_pickups') }}" class="btn btn-outline-success d-block border-2">
-                        <i class="fas fa-boxes fa-fw me-2"></i> Bulk Pickups
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+
 </div>
 {% endblock %}
 
