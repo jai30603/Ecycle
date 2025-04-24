@@ -458,9 +458,42 @@
         
         console.log('Chart data loaded:', { months, pickupsData, userRegData });
         
-        // Set Chart.js default options for all charts
-        Chart.defaults.color = '#e9ecef';
-        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+        // Set Chart.js default options for all charts with better title visibility
+        Chart.defaults.color = '#ffffff';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.2)';
+        
+        // Set specific fonts and colors for better visibility
+        const chartTitleOptions = {
+            font: {
+                size: 16,
+                weight: 'bold'
+            },
+            color: '#ffffff',
+            padding: {
+                top: 10,
+                bottom: 10
+            }
+        };
+        
+        // Create common axis style configuration
+        const commonAxisConfig = {
+            ticks: {
+                color: '#ffffff',
+                font: {
+                    weight: 'bold'
+                }
+            },
+            grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+            },
+            title: {
+                display: true,
+                color: '#ffffff',
+                font: {
+                    weight: 'bold'
+                }
+            }
+        };
         
         try {
             // 1. Monthly Activity Chart
@@ -500,19 +533,24 @@
                             },
                             title: {
                                 display: true,
-                                text: 'Monthly Activity Trends'
+                                text: 'Monthly Activity Trends',
+                                ...chartTitleOptions
                             }
                         },
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)'
+                                ...commonAxisConfig,
+                                title: {
+                                    ...commonAxisConfig.title,
+                                    text: 'Count'
                                 }
                             },
                             x: {
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.1)'
+                                ...commonAxisConfig,
+                                title: {
+                                    ...commonAxisConfig.title,
+                                    text: 'Month'
                                 }
                             }
                         }
@@ -545,7 +583,8 @@
                             },
                             title: {
                                 display: true,
-                                text: 'Pickup Status Distribution'
+                                text: 'Pickup Status Distribution',
+                                ...chartTitleOptions
                             }
                         },
                         cutout: '65%'
@@ -580,7 +619,8 @@
                             },
                             title: {
                                 display: true,
-                                text: 'E-Waste Types by Eco Points'
+                                text: 'E-Waste Types by Eco Points',
+                                ...chartTitleOptions
                             }
                         },
                         scales: {
@@ -635,7 +675,8 @@
                             },
                             title: {
                                 display: true,
-                                text: 'Top Users by Eco Points'
+                                text: 'Top Users by Eco Points',
+                                ...chartTitleOptions
                             }
                         },
                         scales: {
