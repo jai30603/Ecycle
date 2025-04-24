@@ -21,7 +21,7 @@
         <div class="col-md-3">
             <div class="card text-center h-100">
                 <div class="card-body">
-                    <h3 class="display-4 mb-0">{{ stats.total_users }}</h3>
+                    <h3 class="display-4 mb-0">{{ total_users }}</h3>
                     <p class="mt-2 mb-0">Total Users</p>
                 </div>
             </div>
@@ -29,7 +29,7 @@
         <div class="col-md-3">
             <div class="card text-center h-100">
                 <div class="card-body">
-                    <h3 class="display-4 mb-0">{{ stats.pending_pickups }}</h3>
+                    <h3 class="display-4 mb-0">{{ pending_pickups }}</h3>
                     <p class="mt-2 mb-0">Pending Pickups</p>
                 </div>
             </div>
@@ -37,7 +37,7 @@
         <div class="col-md-3">
             <div class="card text-center h-100">
                 <div class="card-body">
-                    <h3 class="display-4 mb-0">{{ stats.total_ewaste }}</h3>
+                    <h3 class="display-4 mb-0">{{ total_ewaste }}</h3>
                     <p class="mt-2 mb-0">E-Waste Items</p>
                 </div>
             </div>
@@ -45,8 +45,8 @@
         <div class="col-md-3">
             <div class="card text-center h-100">
                 <div class="card-body">
-                    <h3 class="display-4 mb-0">{{ stats.total_carbon|round(1) }}</h3>
-                    <p class="mt-2 mb-0">kg CO₂ Saved</p>
+                    <h3 class="display-4 mb-0">{{ completed_pickups }}</h3>
+                    <p class="mt-2 mb-0">Completed Pickups</p>
                 </div>
             </div>
         </div>
@@ -81,7 +81,7 @@
                                     <h5 class="mb-0">Recent Pickups</h5>
                                 </div>
                                 <div class="card-body">
-                                    {% if recent_pickups %}
+                                    {% if upcoming_pickups %}
                                         <div class="table-responsive">
                                             <table class="table table-hover">
                                                 <thead>
@@ -274,7 +274,7 @@
                 labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
                 datasets: [{
                     label: 'Pickups',
-                    data: [{{ stats.monthly_pickups|join(', ') }}],
+                    data: [5, 10, 15, 20, 25, 30], // Placeholder data
                     backgroundColor: 'rgba(54, 162, 235, 0.2)',
                     borderColor: 'rgba(54, 162, 235, 1)',
                     borderWidth: 2,

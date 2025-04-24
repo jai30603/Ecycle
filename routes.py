@@ -570,6 +570,15 @@ def admin_dashboard():
     # Get recent redemptions
     recent_redemptions = Redemption.query.order_by(Redemption.redeemed_at.desc()).limit(5).all()
     
+    # Get e-waste statistics
+    from sqlalchemy import func
+    ewaste_stats_query = db.session.query(
+        Ewaste.ewaste_type.label('type'),
+        func.count(Ewaste.id).label('count')
+    ).group_by(Ewaste.ewaste_type).order_by(func.count(Ewaste.id).desc()).limit(5).all()
+    
+    ewaste_stats = [{'type': item.type, 'count': item.count} for item in ewaste_stats_query] if ewaste_stats_query else []
+    
     return render_template('admin/dashboard.html', 
                           total_users=total_users,
                           total_ewaste=total_ewaste,
@@ -577,7 +586,8 @@ def admin_dashboard():
                           completed_pickups=completed_pickups,
                           recent_users=recent_users,
                           upcoming_pickups=upcoming_pickups,
-                          recent_redemptions=recent_redemptions)
+                          recent_redemptions=recent_redemptions,
+                          ewaste_stats=ewaste_stats)
 
 # Admin user management
 @app.route('/admin/users')
