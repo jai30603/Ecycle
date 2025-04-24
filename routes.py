@@ -200,63 +200,134 @@ def bulk_pickup():
             if form.bulk_file.data:
                 file = form.bulk_file.data
                 if file.filename.endswith('.csv'):
-                    # Process CSV file
-                    stream = StringIO(file.read().decode('utf-8-sig'))
-                    csv_reader = csv.DictReader(stream)
-                    
-                    for row in csv_reader:
+                    # Process CSV file with robust error handling
+                    try:
+                        file_content = file.read()
+                        
+                        # Try multiple encodings if UTF-8 fails
                         try:
-                            ewaste_type = row.get('Device Type', 'Other')
-                            brand_model = row.get('Model', '')
-                            quantity = int(row.get('Quantity', 1))
-                            condition_str = row.get('Condition', 'WORKING').upper()
-                            notes = row.get('Notes', '')
-                            
-                            # Map the condition string to enum value
-                            if 'WORK' in condition_str:
-                                condition = EwasteCondition.WORKING
-                            elif 'DAMAGE' in condition_str:
-                                condition = EwasteCondition.DAMAGED
-                            else:
-                                condition = EwasteCondition.SCRAP
-                            
-                            # Calculate price and points
-                            base_price = price_map.get(ewaste_type, 30)
-                            estimated_price = int(base_price * condition_multiplier.get(condition.name, 1.0))
-                            eco_points = estimated_price // 10
-                            
-                            # Create new bulk e-waste item
-                            item = BulkEwasteItem(
-                                bulk_pickup_id=bulk_pickup.id,
-                                ewaste_type=ewaste_type,
-                                brand_model=brand_model,
-                                quantity=quantity,
-                                condition=condition,
-                                additional_notes=notes,
-                                estimated_price_per_unit=estimated_price,
-                                eco_points_per_unit=eco_points
-                            )
-                            
-                            db.session.add(item)
-                            
-                            # Update totals
-                            total_items += quantity
-                            total_eco_points += (eco_points * quantity)
-                        except Exception as e:
-                            current_app.logger.error(f"Error processing CSV row: {str(e)}")
+                            stream = StringIO(file_content.decode('utf-8-sig'))
+                        except UnicodeDecodeError:
+                            try:
+                                # Try Latin-1 (more forgiving encoding)
+                                stream = StringIO(file_content.decode('latin-1'))
+                            except UnicodeDecodeError:
+                                # Last resort: ignore problematic characters
+                                stream = StringIO(file_content.decode('utf-8', errors='ignore'))
+                        
+                        csv_reader = csv.DictReader(stream)
+                        
+                        for row in csv_reader:
+                            try:
+                                ewaste_type = str(row.get('Device Type', 'Other')).strip()
+                                brand_model = str(row.get('Model', '')).strip()
+                                
+                                # Sanitize inputs
+                                brand_model = ''.join(c for c in brand_model if c.isprintable())
+                                
+                                # Handle quantity properly
+                                try:
+                                    quantity = int(row.get('Quantity', 1))
+                                except (ValueError, TypeError):
+                                    quantity = 1
+                                
+                                condition_str = str(row.get('Condition', 'WORKING')).strip().upper()
+                                notes = str(row.get('Notes', '')).strip()
+                                
+                                # Sanitize notes
+                                notes = ''.join(c for c in notes if c.isprintable())
+                                
+                                # Map the condition string to enum value
+                                if 'WORK' in condition_str:
+                                    condition = EwasteCondition.WORKING
+                                elif 'DAMAGE' in condition_str:
+                                    condition = EwasteCondition.DAMAGED
+                                else:
+                                    condition = EwasteCondition.SCRAP
+                                
+                                # Calculate price and points
+                                base_price = price_map.get(ewaste_type, 30)
+                                estimated_price = int(base_price * condition_multiplier.get(condition.name, 1.0))
+                                eco_points = estimated_price // 10
+                                
+                                # Create new bulk e-waste item
+                                item = BulkEwasteItem(
+                                    bulk_pickup_id=bulk_pickup.id,
+                                    ewaste_type=ewaste_type,
+                                    brand_model=brand_model,
+                                    quantity=quantity,
+                                    condition=condition,
+                                    additional_notes=notes,
+                                    estimated_price_per_unit=estimated_price,
+                                    eco_points_per_unit=eco_points
+                                )
+                                
+                                db.session.add(item)
+                                
+                                # Update totals
+                                total_items += quantity
+                                total_eco_points += (eco_points * quantity)
+                            except Exception as e:
+                                current_app.logger.error(f"Error processing CSV row: {str(e)}")
+                    except Exception as e:
+                        current_app.logger.error(f"Error processing CSV file: {str(e)}")
                 
                 elif file.filename.endswith(('.xlsx', '.xls')):
-                    # Process Excel file
+                    # Process Excel file with improved error handling
                     try:
-                        df = pd.read_excel(file)
+                        # Save to temporary file to handle potential streaming issues
+                        import tempfile
+                        
+                        with tempfile.NamedTemporaryFile(delete=False, suffix='.xlsx') as temp:
+                            temp_path = temp.name
+                            file.save(temp_path)
+                        
+                        # Try multiple engines and handle errors
+                        try:
+                            # First try with openpyxl (modern Excel files)
+                            df = pd.read_excel(temp_path, engine='openpyxl')
+                        except Exception as e:
+                            current_app.logger.warning(f"Error with openpyxl: {str(e)}. Trying xlrd engine.")
+                            try:
+                                # Try with xlrd (older Excel files)
+                                df = pd.read_excel(temp_path, engine='xlrd')
+                            except Exception as e:
+                                current_app.logger.error(f"Error with xlrd: {str(e)}")
+                                raise
                         
                         for index, row in df.iterrows():
                             try:
-                                ewaste_type = row.get('Device Type', 'Other')
-                                brand_model = row.get('Model', '')
-                                quantity = int(row.get('Quantity', 1))
-                                condition_str = str(row.get('Condition', 'WORKING')).upper()
-                                notes = row.get('Notes', '')
+                                # Handle NaN and convert to proper types
+                                ewaste_type = str(row.get('Device Type', '') or 'Other').strip()
+                                
+                                # Fix common empty values in pandas
+                                if ewaste_type == 'nan' or not ewaste_type:
+                                    ewaste_type = 'Other'
+                                
+                                brand_model = str(row.get('Model', '') or '').strip()
+                                
+                                # Sanitize strings
+                                brand_model = ''.join(c for c in brand_model if c.isprintable())
+                                
+                                # Handle quantity with error checking
+                                try:
+                                    quantity_value = row.get('Quantity', 1)
+                                    if pd.isna(quantity_value):
+                                        quantity = 1
+                                    else:
+                                        quantity = int(quantity_value)
+                                except (ValueError, TypeError):
+                                    quantity = 1
+                                
+                                # Ensure quantity is positive
+                                quantity = max(1, quantity)
+                                
+                                # Handle condition
+                                condition_str = str(row.get('Condition', '') or 'WORKING').strip().upper()
+                                
+                                # Handle notes with sanitization
+                                notes = str(row.get('Notes', '') or '').strip()
+                                notes = ''.join(c for c in notes if c.isprintable())
                                 
                                 # Map the condition string to enum value
                                 if 'WORK' in condition_str:
@@ -290,6 +361,12 @@ def bulk_pickup():
                                 total_eco_points += (eco_points * quantity)
                             except Exception as e:
                                 current_app.logger.error(f"Error processing Excel row: {str(e)}")
+                        
+                        # Clean up temporary file
+                        import os
+                        if os.path.exists(temp_path):
+                            os.unlink(temp_path)
+                            
                     except Exception as e:
                         current_app.logger.error(f"Error processing Excel file: {str(e)}")
             
