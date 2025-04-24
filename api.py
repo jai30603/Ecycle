@@ -19,12 +19,23 @@ if HAS_API_KEY:
     except ImportError:
         HAS_API_KEY = False
 
-# List of common e-waste types that match our application categories
+# Complete list of e-waste types from Roboflow
 EWASTE_TYPES = [
-    "Laptop", "Smartphone", "Desktop-PC", "Tablet", "Flat-Panel-Monitor",
-    "Printer", "Air-Conditioner", "Washing-Machine", "Refrigerator",
-    "Microwave", "Flat-Panel-TV", "Camera", "Computer-Keyboard",
-    "Computer-Mouse", "Headphone", "Battery"
+    "Air-Conditioner", "Bar-Phone", "Battery", "Blood-Pressure-Monitor", "Boiler", 
+    "CRT-Monitor", "CRT-TV", "Calculator", "Camera", "Ceiling-Fan", "Christmas-Lights", 
+    "Clothes-Iron", "Coffee-Machine", "Compact-Fluorescent-Lamps", "Computer-Keyboard", 
+    "Computer-Mouse", "Cooled-Dispenser", "Cooling-Display", "Dehumidifier", "Desktop-PC", 
+    "Digital-Oscilloscope", "Dishwasher", "Drone", "Electric-Bicycle", "Electric-Guitar", 
+    "Electrocardiograph-Machine", "Electronic-Keyboard", "Exhaust-Fan", "Flashlight", 
+    "Flat-Panel-Monitor", "Flat-Panel-TV", "Floor-Fan", "Freezer", "Glucose-Meter", 
+    "HDD", "Hair-Dryer", "Headphone", "LED-Bulb", "Laptop", "Microwave", "Music-Player", 
+    "Neon-Sign", "Network-Switch", "Non-Cooled-Dispenser", "Oven", "PCB", 
+    "Patient-Monitoring-System", "Photovoltaic-Panel", "PlayStation-5", "Power-Adapter", 
+    "Printer", "Projector", "Pulse-Oximeter", "Range-Hood", "Refrigerator", "Rotary-Mower",
+    "Router", "SSD", "Server", "Smart-Watch", "Smartphone", "Smoke-Detector", 
+    "Soldering-Iron", "Speaker", "Stove", "Straight-Tube-Fluorescent-Lamp", "Street-Lamp", 
+    "TV-Remote-Control", "Table-Lamp", "Tablet", "Telephone-Set", "Toaster", "Tumble-Dryer", 
+    "USB-Flash-Drive", "Vacuum-Cleaner", "Washing-Machine", "Xbox-Series-X"
 ]
 
 def generate_mock_results(image_path):
