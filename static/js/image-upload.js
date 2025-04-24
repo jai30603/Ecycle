@@ -5,8 +5,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const imageFileInput = document.getElementById('imageFile');
     const imagePreview = document.getElementById('imagePreview');
     const classificationResult = document.getElementById('classificationResult');
-    const ewasteTypeField = document.getElementById('ewasteType');
+    const ewasteTypeField = document.getElementById('ewaste_type');
     const recyclingInfoSection = document.getElementById('recyclingInfo');
+    const autofillMessage = document.getElementById('autofillMessage');
     const spinner = document.getElementById('classificationSpinner');
     
     if (!imageUploadForm) return;
@@ -42,10 +43,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         formData.append('image', file);
         
-        // Show spinner
+        // Show spinner and hide previous results
         spinner.classList.remove('d-none');
         classificationResult.classList.add('d-none');
         recyclingInfoSection.classList.add('d-none');
+        autofillMessage.classList.add('d-none');
         
         // Send the request
         fetch('/classify', {
@@ -76,23 +78,41 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Update the e-waste type select field if it exists
             if (ewasteTypeField) {
+                console.log('Found ewaste_type field, attempting to update with: ' + data.ewaste_type);
+                
                 // Find the option that matches the detected type, or default to "Other"
                 const options = ewasteTypeField.options;
                 let found = false;
                 
+                // First try an exact match (case sensitive)
                 for (let i = 0; i < options.length; i++) {
                     if (options[i].value === data.ewaste_type) {
+                        console.log('Exact match found at index ' + i + ': ' + options[i].value);
                         ewasteTypeField.selectedIndex = i;
                         found = true;
                         break;
                     }
                 }
                 
+                // If no exact match, try a case-insensitive match
                 if (!found && data.ewaste_type) {
-                    // If exact match not found, try a partial match
+                    const lowerCaseType = data.ewaste_type.toLowerCase();
+                    for (let i = 0; i < options.length; i++) {
+                        if (options[i].value.toLowerCase() === lowerCaseType) {
+                            console.log('Case-insensitive match found at index ' + i + ': ' + options[i].value);
+                            ewasteTypeField.selectedIndex = i;
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                
+                // If still no match, try partial match
+                if (!found && data.ewaste_type) {
                     for (let i = 0; i < options.length; i++) {
                         if (data.ewaste_type.includes(options[i].value) || 
                             options[i].value.includes(data.ewaste_type)) {
+                            console.log('Partial match found at index ' + i + ': ' + options[i].value);
                             ewasteTypeField.selectedIndex = i;
                             found = true;
                             break;
@@ -104,11 +124,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!found) {
                     for (let i = 0; i < options.length; i++) {
                         if (options[i].value === 'Other') {
+                            console.log('No match found, defaulting to Other');
                             ewasteTypeField.selectedIndex = i;
                             break;
                         }
                     }
                 }
+                
+                // Trigger a change event so any dependent fields update
+                const event = new Event('change');
+                ewasteTypeField.dispatchEvent(event);
+                
+                // Update RAM field if computer-related item
+                const ramField = document.getElementById('ram');
+                if (ramField && data.ewaste_type) {
+                    if (data.ewaste_type === 'Laptop' || data.ewaste_type === 'Desktop-PC') {
+                        // Default to a common RAM value
+                        ramField.value = '8GB';
+                    } else if (data.ewaste_type === 'Smartphone' || data.ewaste_type === 'Tablet') {
+                        // For mobile devices
+                        ramField.value = '4GB';
+                    } else {
+                        // For other devices
+                        ramField.value = '';
+                    }
+                }
+                
+                // Add a visual indication that the field was auto-updated
+                ewasteTypeField.classList.add('is-valid');
+                
+                // Show the autofill message
+                if (autofillMessage) {
+                    autofillMessage.classList.remove('d-none');
+                    setTimeout(() => {
+                        autofillMessage.classList.add('d-none');
+                    }, 5000);
+                }
+                
+                setTimeout(() => {
+                    ewasteTypeField.classList.remove('is-valid');
+                }, 3000);
+            } else {
+                console.log('E-waste type field not found in the form');
             }
             
             // Show recycling information
