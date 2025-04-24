@@ -1,7 +1,7 @@
 import os
 import tempfile
 from datetime import datetime, timedelta
-from flask import render_template, request, redirect, url_for, flash, session, jsonify
+from flask import render_template, request, redirect, url_for, flash, session, jsonify, make_response
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from app import app, db
@@ -781,10 +781,28 @@ def admin_update_pickup(pickup_id):
     new_status = request.form.get('status')
     
     if new_status in ['Pending', 'Collected']:
+        # See if status was changed from Pending to Collected
+        was_status_changed_to_collected = (pickup.status != 'Collected' and new_status == 'Collected')
+        
         pickup.status = new_status
         pickup.updated_at = datetime.utcnow()
         db.session.commit()
+        
         flash(f'Pickup status updated to {new_status}.', 'success')
+        
+        # If pickup is marked as collected, update the user's carbon footprint
+        if was_status_changed_to_collected:
+            # Get user and ewaste details
+            user = User.query.get(pickup.user_id)
+            ewaste = Ewaste.query.get(pickup.ewaste_id)
+            
+            # Update user's carbon footprint based on the ewaste type
+            carbon_saved = calculate_carbon_footprint(ewaste.ewaste_type)
+            user.carbon_saved += carbon_saved
+            db.session.commit()
+            
+            # Log the certificate generation
+            print(f"Generating certificate for pickup #{pickup_id}, user: {user.username}, ewaste: {ewaste.ewaste_type}")
     else:
         flash('Invalid status.', 'danger')
     
@@ -969,6 +987,50 @@ def create_admin():
         db.session.commit()
         app.logger.info('Admin user created')
         
+# Route to download disposal certificate
+@app.route('/certificate/<int:pickup_id>')
+def download_certificate(pickup_id):
+    """
+    Generate and download a disposal certificate PDF for a completed e-waste pickup
+    """
+    if 'user_id' not in session:
+        flash('Please login to access your certificates.', 'warning')
+        return redirect(url_for('login'))
+    
+    # Get the pickup/schedule
+    pickup = Schedule.query.get_or_404(pickup_id)
+    
+    # Check if the user has permission (either the admin or the user who owns the pickup)
+    if session.get('user_id') != pickup.user_id and 'admin_id' not in session:
+        flash('You do not have permission to access this certificate.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    # Check if the pickup status is "Collected"
+    if pickup.status != 'Collected':
+        flash('Certificate is only available for completed pickups.', 'warning')
+        return redirect(url_for('history'))
+    
+    # Get the user and ewaste details
+    user = User.query.get(pickup.user_id)
+    ewaste = Ewaste.query.get(pickup.ewaste_id)
+    
+    # Generate the certificate PDF
+    try:
+        from utils import generate_disposal_certificate
+        pdf_buffer = generate_disposal_certificate(user, ewaste, pickup)
+        
+        # Prepare the response with the PDF
+        response = make_response(pdf_buffer.getvalue())
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename=ecycle_certificate_{pickup_id}.pdf'
+        
+        return response
+    
+    except Exception as e:
+        app.logger.error(f"Error generating certificate: {str(e)}")
+        flash('An error occurred while generating the certificate. Please try again later.', 'danger')
+        return redirect(url_for('history'))
+
 # API endpoint for image classification from the frontend
 @app.route('/api/classify', methods=['POST'])
 def api_classify():

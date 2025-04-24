@@ -1,6 +1,15 @@
+import os
+import uuid
 import feedparser
 import requests
-from flask import current_app
+from io import BytesIO
+from datetime import datetime
+from flask import current_app, url_for
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4, letter
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import inch, cm
 
 def get_ewaste_news(limit=5):
     """
@@ -147,3 +156,191 @@ def calculate_carbon_footprint(ewaste_type, quantity=1):
     
     # Return carbon savings or default to 40kg if type not in dictionary
     return carbon_savings.get(ewaste_type, 40.0) * quantity
+
+def generate_disposal_certificate(user, ewaste, schedule):
+    """
+    Generate a PDF disposal certificate for a completed e-waste pickup
+    
+    Args:
+        user (User): User who scheduled the pickup
+        ewaste (Ewaste): The e-waste item collected
+        schedule (Schedule): The schedule/pickup record
+        
+    Returns:
+        BytesIO: PDF document as a byte stream
+    """
+    # Create a PDF buffer to store the PDF
+    buffer = BytesIO()
+    
+    # Set up the PDF document
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=72,
+        leftMargin=72,
+        topMargin=72,
+        bottomMargin=72
+    )
+    
+    # Styles for the document
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(
+        name='CertificateTitle',
+        fontName='Helvetica-Bold',
+        fontSize=16,
+        alignment=1,
+        spaceAfter=12
+    ))
+    styles.add(ParagraphStyle(
+        name='CertificateSubTitle',
+        fontName='Helvetica-Bold',
+        fontSize=12,
+        alignment=1,
+        spaceAfter=12
+    ))
+    styles.add(ParagraphStyle(
+        name='Normal-Center',
+        parent=styles['Normal'],
+        alignment=1
+    ))
+    styles.add(ParagraphStyle(
+        name='Bold-Center',
+        parent=styles['BodyText'],
+        fontName='Helvetica-Bold',
+        alignment=1
+    ))
+    
+    # Generate a unique certificate number
+    certificate_number = f"ECO-{uuid.uuid4().hex[:8].upper()}-{schedule.id}"
+    
+    # Format dates
+    pickup_date = schedule.pickup_date.strftime("%B %d, %Y")
+    issued_date = datetime.now().strftime("%B %d, %Y")
+    
+    # Calculate environmental impact
+    carbon_saved = calculate_carbon_footprint(ewaste.ewaste_type)
+    
+    # Build the document content
+    elements = []
+    
+    # Add logo (if available) or title
+    try:
+        # Specify the correct path to your logo
+        logo_path = os.path.join('static', 'img', 'ecycle-logo.png')
+        if os.path.exists(logo_path):
+            logo = Image(logo_path)
+            logo.drawHeight = 1.5*inch
+            logo.drawWidth = 1.5*inch
+            elements.append(logo)
+        else:
+            # If logo doesn't exist, just use text
+            elements.append(Paragraph('E-CYCLE', styles['CertificateTitle']))
+    except Exception as e:
+        current_app.logger.error(f"Error adding logo to certificate: {str(e)}")
+        elements.append(Paragraph('E-CYCLE', styles['CertificateTitle']))
+    
+    # Certificate Title
+    elements.append(Paragraph('E-WASTE DISPOSAL CERTIFICATE', styles['CertificateTitle']))
+    elements.append(Spacer(1, 0.25*inch))
+    
+    # Certificate Number and Date
+    elements.append(Paragraph(f'Certificate Number: {certificate_number}', styles['Bold-Center']))
+    elements.append(Paragraph(f'Issued: {issued_date}', styles['Normal-Center']))
+    elements.append(Spacer(1, 0.5*inch))
+    
+    # Introduction Text
+    intro_text = f'''
+    This is to certify that <b>{user.username}</b> has responsibly disposed of electronic waste 
+    through the Ecycle platform, contributing to environmental sustainability and proper e-waste management.
+    '''
+    elements.append(Paragraph(intro_text, styles['Normal-Center']))
+    elements.append(Spacer(1, 0.25*inch))
+    
+    # Device Information
+    device_data = [
+        ['DEVICE INFORMATION', ''],
+        ['E-Waste Type:', ewaste.ewaste_type.replace('-', ' ')],
+        ['Model/Brand:', ewaste.model if ewaste.model else 'Not specified'],
+        ['Condition:', ewaste.condition],
+        ['Pickup Date:', pickup_date],
+        ['Pickup Reference:', f'#{schedule.id}']
+    ]
+    
+    device_table = Table(device_data, colWidths=[2*inch, 3*inch])
+    device_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (1, 0), colors.green),
+        ('TEXTCOLOR', (0, 0), (1, 0), colors.white),
+        ('ALIGN', (0, 0), (1, 0), 'CENTER'),
+        ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (1, 0), 8),
+        ('BACKGROUND', (0, 1), (1, 5), colors.white),
+        ('GRID', (0, 0), (1, 5), 1, colors.black),
+        ('VALIGN', (0, 0), (1, 5), 'MIDDLE'),
+    ]))
+    elements.append(device_table)
+    elements.append(Spacer(1, 0.25*inch))
+    
+    # Environmental Impact
+    impact_data = [
+        ['ENVIRONMENTAL IMPACT', ''],
+        ['Carbon Footprint Saved:', f'{carbon_saved:.1f} kg CO₂e'],
+        ['Eco Points Earned:', f'{ewaste.eco_points} points'],
+        ['Recycling Method:', 'Responsible Recycling & Resource Recovery']
+    ]
+    
+    impact_table = Table(impact_data, colWidths=[2*inch, 3*inch])
+    impact_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (1, 0), colors.blue),
+        ('TEXTCOLOR', (0, 0), (1, 0), colors.white),
+        ('ALIGN', (0, 0), (1, 0), 'CENTER'),
+        ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (1, 0), 8),
+        ('BACKGROUND', (0, 1), (1, 3), colors.white),
+        ('GRID', (0, 0), (1, 3), 1, colors.black),
+        ('VALIGN', (0, 0), (1, 3), 'MIDDLE'),
+    ]))
+    elements.append(impact_table)
+    elements.append(Spacer(1, 0.25*inch))
+    
+    # Certification Statement
+    certification_text = '''
+    <b>CERTIFICATION STATEMENT</b><br/><br/>
+    This is to certify that the above-mentioned electronic waste item was collected and 
+    processed in accordance with responsible e-waste management practices and applicable 
+    environmental regulations. All data storage devices have been securely wiped or physically 
+    destroyed as appropriate.
+    '''
+    elements.append(Paragraph(certification_text, styles['Normal-Center']))
+    elements.append(Spacer(1, 0.5*inch))
+    
+    # Signature
+    signature_data = [
+        ['', ''],
+        ['_______________________', '_______________________'],
+        ['Authorized Signature', 'Date'],
+        ['Ecycle Recycling Officer', '']
+    ]
+    
+    signature_table = Table(signature_data, colWidths=[2.5*inch, 2.5*inch])
+    signature_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (1, 3), 'CENTER'),
+        ('VALIGN', (0, 0), (1, 3), 'MIDDLE'),
+    ]))
+    elements.append(signature_table)
+    elements.append(Spacer(1, 0.25*inch))
+    
+    # Footer
+    footer_text = '''
+    <i>Thank you for contributing to a sustainable future by responsibly recycling your electronic waste.</i>
+    '''
+    elements.append(Paragraph(footer_text, styles['Normal-Center']))
+    
+    # Build the PDF
+    doc.build(elements)
+    
+    # Reset buffer position to the beginning
+    buffer.seek(0)
+    
+    return buffer
