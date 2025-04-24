@@ -16,40 +16,80 @@
         </div>
     </div>
 
-    {% if certificates %}
-        <div class="row">
-            {% for cert in certificates %}
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card h-100">
-                        <div class="card-header bg-success text-white">
-                            <h5 class="mb-0">Certificate #{{ cert.id }}</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <i class="fas fa-award text-success fa-3x mb-3"></i>
-                                <h5 class="card-title">{{ cert.ewaste.ewaste_type }}</h5>
-                                <p class="card-text text-muted">
-                                    Issued on {{ cert.updated_at.strftime('%b %d, %Y') }}
-                                </p>
+    {% if certificates or bulk_certificates %}
+        <!-- Regular Pickup Certificates -->
+        {% if certificates %}
+            <h3 class="mb-3">Regular Pickup Certificates</h3>
+            <div class="row">
+                {% for cert in certificates %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">Certificate #{{ cert.id }}</h5>
                             </div>
-                            <div class="mb-3">
-                                <span class="badge bg-success mb-2">Eco Points: +{{ cert.ewaste.eco_points }}</span>
-                                <p class="mb-1"><strong>Condition:</strong> {{ cert.ewaste.condition }}</p>
-                                {% if cert.ewaste.model %}
-                                    <p class="mb-1"><strong>Model:</strong> {{ cert.ewaste.model }}</p>
-                                {% endif %}
-                                <p><strong>Carbon Saved:</strong> {{ "{:.1f}".format(carbon_footprints[cert.id]|default(0)) }} kg CO₂e</p>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <i class="fas fa-award text-success fa-3x mb-3"></i>
+                                    <h5 class="card-title">{{ cert.ewaste.ewaste_type }}</h5>
+                                    <p class="card-text text-muted">
+                                        Issued on {{ cert.updated_at.strftime('%b %d, %Y') }}
+                                    </p>
+                                </div>
+                                <div class="mb-3">
+                                    <span class="badge bg-success mb-2">Eco Points: +{{ cert.ewaste.eco_points }}</span>
+                                    <p class="mb-1"><strong>Condition:</strong> {{ cert.ewaste.condition }}</p>
+                                    {% if cert.ewaste.model %}
+                                        <p class="mb-1"><strong>Model:</strong> {{ cert.ewaste.model }}</p>
+                                    {% endif %}
+                                    <p><strong>Carbon Saved:</strong> {{ "{:.1f}".format(carbon_footprints[cert.id]|default(0)) }} kg CO₂e</p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="card-footer bg-light">
-                            <a href="{{ url_for('download_certificate', pickup_id=cert.id) }}" class="btn btn-success w-100">
-                                <i class="fas fa-download me-2"></i> Download Certificate
-                            </a>
+                            <div class="card-footer bg-light">
+                                <a href="{{ url_for('download_certificate', pickup_id=cert.id) }}" class="btn btn-success w-100">
+                                    <i class="fas fa-download me-2"></i> Download Certificate
+                                </a>
+                            </div>
                         </div>
                     </div>
-                </div>
-            {% endfor %}
-        </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <!-- Bulk Pickup Certificates -->
+        {% if bulk_certificates %}
+            <h3 class="mb-3 mt-4">Bulk Pickup Certificates</h3>
+            <div class="row">
+                {% for cert in bulk_certificates %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="mb-0">Bulk Certificate #{{ cert.id }}</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <i class="fas fa-building text-danger fa-3x mb-3"></i>
+                                    <h5 class="card-title">{{ cert.organization_name }}</h5>
+                                    <p class="card-text text-muted">
+                                        Issued on {{ cert.updated_at.strftime('%b %d, %Y') }}
+                                    </p>
+                                </div>
+                                <div class="mb-3">
+                                    <span class="badge bg-danger mb-2">Eco Points: +{{ cert.actual_eco_points or cert.estimated_eco_points }}</span>
+                                    <p class="mb-1"><strong>Organization Type:</strong> {{ cert.organization_type.value }}</p>
+                                    <p class="mb-1"><strong>Total Items:</strong> {{ bulk_item_counts[cert.id] }}</p>
+                                    <p><strong>Carbon Saved:</strong> {{ "{:.1f}".format(bulk_carbon_footprints[cert.id]|default(0)) }} kg CO₂e</p>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-light">
+                                <a href="{{ url_for('download_bulk_certificate', bulk_pickup_id=cert.id) }}" class="btn btn-danger w-100">
+                                    <i class="fas fa-download me-2"></i> Download Certificate
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
     {% else %}
         <div class="card">
             <div class="card-body text-center py-5">

@@ -1620,7 +1620,7 @@ def create_admin():
 @app.route('/certificates')
 def certificates():
     """
-    Display all certificates for the logged-in user
+    Display all certificates for the logged-in user (both regular and bulk pickups)
     """
     if 'user_id' not in session:
         flash('Please login to view your certificates.', 'warning')
@@ -1628,23 +1628,44 @@ def certificates():
     
     user_id = session['user_id']
     
-    # Get all completed pickups for the user
-    certificates = Schedule.query.filter_by(
+    # Get all completed regular pickups for the user
+    regular_certificates = Schedule.query.filter_by(
         user_id=user_id, 
         status='Collected'
     ).order_by(Schedule.updated_at.desc()).all()
     
-    # Calculate carbon footprint for each pickup
+    # Get all completed bulk pickups for the user
+    bulk_certificates = BulkPickup.query.filter_by(
+        user_id=user_id,
+        status='Collected'
+    ).order_by(BulkPickup.updated_at.desc()).all()
+    
+    # Calculate carbon footprint for each regular pickup
     carbon_footprints = {}
-    for cert in certificates:
+    for cert in regular_certificates:
         ewaste = Ewaste.query.get(cert.ewaste_id)
         carbon_footprints[cert.id] = calculate_carbon_footprint(ewaste.ewaste_type)
     
+    # Calculate carbon footprint for each bulk pickup
+    bulk_carbon_footprints = {}
+    bulk_item_counts = {}
+    for bulk_cert in bulk_certificates:
+        # Get all items for this bulk pickup
+        items = BulkEwasteItem.query.filter_by(bulk_pickup_id=bulk_cert.id).all()
+        # Calculate total carbon saved
+        total_carbon = sum(calculate_carbon_footprint(item.ewaste_type, item.quantity) for item in items)
+        bulk_carbon_footprints[bulk_cert.id] = total_carbon
+        # Count total items
+        bulk_item_counts[bulk_cert.id] = sum(item.quantity for item in items)
+    
     return render_template('certificates.html', 
-                           certificates=certificates,
-                           carbon_footprints=carbon_footprints)
+                           certificates=regular_certificates,
+                           carbon_footprints=carbon_footprints,
+                           bulk_certificates=bulk_certificates,
+                           bulk_carbon_footprints=bulk_carbon_footprints,
+                           bulk_item_counts=bulk_item_counts)
 
-# Route to download disposal certificate
+# Route to download regular disposal certificate
 @app.route('/certificate/<int:pickup_id>')
 def download_certificate(pickup_id):
     """
@@ -1686,6 +1707,49 @@ def download_certificate(pickup_id):
         app.logger.error(f"Error generating certificate: {str(e)}")
         flash('An error occurred while generating the certificate. Please try again later.', 'danger')
         return redirect(url_for('history'))
+
+# Route to download bulk disposal certificate
+@app.route('/bulk-certificate/<int:bulk_pickup_id>')
+def download_bulk_certificate(bulk_pickup_id):
+    """
+    Generate and download a disposal certificate PDF for a completed bulk e-waste pickup
+    """
+    if 'user_id' not in session:
+        flash('Please login to access your certificates.', 'warning')
+        return redirect(url_for('login'))
+    
+    # Get the bulk pickup
+    bulk_pickup = BulkPickup.query.get_or_404(bulk_pickup_id)
+    
+    # Check if the user has permission (either the admin or the user who owns the pickup)
+    if session.get('user_id') != bulk_pickup.user_id and 'admin_id' not in session:
+        flash('You do not have permission to access this certificate.', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    # Check if the pickup status is "Collected"
+    if bulk_pickup.status != 'Collected':
+        flash('Certificate is only available for completed pickups.', 'warning')
+        return redirect(url_for('bulk_history'))
+    
+    # Get the user and e-waste item details
+    user = User.query.get(bulk_pickup.user_id)
+    items = BulkEwasteItem.query.filter_by(bulk_pickup_id=bulk_pickup.id).all()
+    
+    # Generate the certificate PDF
+    try:
+        pdf_buffer = generate_bulk_disposal_certificate(user, bulk_pickup, items)
+        
+        # Prepare the response with the PDF
+        response = make_response(pdf_buffer.getvalue())
+        response.headers['Content-Type'] = 'application/pdf'
+        response.headers['Content-Disposition'] = f'attachment; filename=ecycle_bulk_certificate_{bulk_pickup_id}.pdf'
+        
+        return response
+    
+    except Exception as e:
+        app.logger.error(f"Error generating bulk certificate: {str(e)}")
+        flash('An error occurred while generating the certificate. Please try again later.', 'danger')
+        return redirect(url_for('bulk_history'))
 
 # API endpoint for image classification from the frontend
 @app.route('/api/classify', methods=['POST'])
