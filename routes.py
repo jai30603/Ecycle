@@ -1668,3 +1668,102 @@ def api_classify():
             os.unlink(temp_path)  # Clean up on error
         print(f"API Classification error: {str(e)}")
         return jsonify({'success': False, 'message': f'Error during classification: {str(e)}'}), 500
+
+# E-Talk Community Board Routes
+
+@app.route('/etalk')
+def etalk():
+    """Render the E-Talk community message board page"""
+    if 'user_id' not in session:
+        flash('Please login to access the E-Talk community board.', 'warning')
+        return redirect(url_for('login'))
+    
+    form = MessageForm()
+    
+    # Get all messages ordered by newest first
+    messages = Message.query.order_by(Message.created_at.desc()).all()
+    
+    return render_template('etalk.html', form=form, messages=messages)
+
+@app.route('/etalk/post', methods=['POST'])
+def post_message():
+    """Handle posting a new message to the E-Talk community board"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Login required'}), 401
+    
+    form = MessageForm()
+    if form.validate_on_submit():
+        user_id = session['user_id']
+        content = form.content.data
+        
+        # Create and save the new message
+        message = Message(user_id=user_id, content=content)
+        db.session.add(message)
+        db.session.commit()
+        
+        # Return JSON response for AJAX requests
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({
+                'success': True,
+                'message': message.to_dict()
+            })
+        
+        flash('Your message has been posted!', 'success')
+        return redirect(url_for('etalk'))
+    
+    # If form validation failed
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({
+            'success': False,
+            'errors': form.errors
+        }), 400
+    
+    flash('Error posting message. Please try again.', 'danger')
+    return redirect(url_for('etalk'))
+
+@app.route('/etalk/messages')
+def get_messages():
+    """API endpoint to get latest messages for real-time updates"""
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'error': 'Login required'}), 401
+    
+    # Get timestamp parameter for messages newer than a specific time
+    since = request.args.get('since', 0, type=int)
+    
+    # Get messages newer than the provided timestamp
+    if since > 0:
+        timestamp = datetime.fromtimestamp(since)
+        messages = Message.query.filter(Message.created_at > timestamp).order_by(Message.created_at.desc()).all()
+    else:
+        messages = Message.query.order_by(Message.created_at.desc()).limit(50).all()
+    
+    return jsonify({
+        'success': True,
+        'messages': [message.to_dict() for message in messages]
+    })
+
+@app.route('/etalk/message/<int:message_id>/delete', methods=['POST'])
+def delete_message(message_id):
+    """Delete a message (admin only or message owner)"""
+    if 'user_id' not in session and 'admin_id' not in session:
+        return jsonify({'success': False, 'error': 'Login required'}), 401
+    
+    message = Message.query.get_or_404(message_id)
+    
+    # Check if user is admin or the message owner
+    is_admin = 'admin_id' in session
+    is_owner = 'user_id' in session and session['user_id'] == message.user_id
+    
+    if not (is_admin or is_owner):
+        return jsonify({'success': False, 'error': 'Permission denied'}), 403
+    
+    # Delete the message
+    db.session.delete(message)
+    db.session.commit()
+    
+    # Return JSON response for AJAX requests
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'success': True})
+    
+    flash('Message deleted successfully.', 'success')
+    return redirect(url_for('etalk'))
