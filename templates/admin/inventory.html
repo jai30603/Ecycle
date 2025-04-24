@@ -1,150 +1,323 @@
 {% extends 'base.html' %}
 
-{% block title %}E-waste Inventory - Ecycle Admin{% endblock %}
+{% block title %}E-waste Inventory - Admin - Ecycle{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>E-Waste Inventory</h1>
-    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-info">
-        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
-    </a>
-</div>
-
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card text-center">
-            <div class="card-body">
-                <h3>{{ ewaste_items|length }}</h3>
-                <p class="text-muted mb-0">Total Items</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center">
-            <div class="card-body">
-                {% set unique_types = {} %}
-                {% for item in ewaste_items %}
-                    {% set _ = unique_types.update({item.ewaste_type: 1}) %}
-                {% endfor %}
-                <h3>{{ unique_types|length }}</h3>
-                <p class="text-muted mb-0">Different Types</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center">
-            <div class="card-body">
-                {% set total_value = 0 %}
-                {% for item in ewaste_items %}
-                    {% set total_value = total_value + item.estimated_price %}
-                {% endfor %}
-                <h3>${{ total_value }}</h3>
-                <p class="text-muted mb-0">Total Value</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center">
-            <div class="card-body">
-                {% set total_points = 0 %}
-                {% for item in ewaste_items %}
-                    {% set total_points = total_points + item.eco_points %}
-                {% endfor %}
-                <h3>{{ total_points }}</h3>
-                <p class="text-muted mb-0">Total Eco Points</p>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Distribution Chart -->
 <div class="row mb-4">
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">E-Waste Type Distribution</h5>
-            </div>
+        <h1 class="mb-0">E-waste Inventory</h1>
+        <p class="text-muted">Manage collected e-waste items and their recycling status</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <div class="btn-group">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-info">
+                <i class="fas fa-arrow-left me-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card admin-card">
             <div class="card-body">
-                <canvas id="ewasteDistributionChart" height="300"></canvas>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted">Total Items</h6>
+                        <h3>{{ ewaste_items|length }}</h3>
+                    </div>
+                    <div class="fs-1 text-info">
+                        <i class="fas fa-laptop"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">Top E-Waste Types</h5>
-            </div>
-            <div class="card-body p-0">
-                {% set type_counts = {} %}
-                {% for item in ewaste_items %}
-                    {% if item.ewaste_type in type_counts %}
-                        {% set _ = type_counts.update({item.ewaste_type: type_counts[item.ewaste_type] + 1}) %}
-                    {% else %}
-                        {% set _ = type_counts.update({item.ewaste_type: 1}) %}
-                    {% endif %}
-                {% endfor %}
-                
-                <ul class="list-group list-group-flush">
-                    {% for type, count in type_counts|dictsort(by='value', reverse=true)[:5] %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            {{ type }}
-                            <span class="badge bg-info">{{ count }}</span>
-                        </li>
-                    {% endfor %}
-                </ul>
+    <div class="col-md-3">
+        <div class="card admin-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted">Total Value</h6>
+                        <h3>${{ total_value }}</h3>
+                    </div>
+                    <div class="fs-1 text-success">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card admin-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted">Total Eco Points</h6>
+                        <h3>{{ total_eco_points }}</h3>
+                    </div>
+                    <div class="fs-1 text-warning">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card admin-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted">Carbon Saved</h6>
+                        <h3>{{ carbon_saved|round|int }} kg</h3>
+                    </div>
+                    <div class="fs-1 text-info">
+                        <i class="fas fa-tree"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory breakdown chart -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">E-waste Type Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="ewasteTypeChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Item Condition Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="conditionChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form action="{{ url_for('admin_inventory') }}" method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label for="ewaste_type" class="form-label">E-waste Type</label>
+                <select class="form-select" id="ewaste_type" name="ewaste_type">
+                    <option value="">All Types</option>
+                    {% for type in ewaste_types %}
+                        <option value="{{ type }}" {% if request.args.get('ewaste_type') == type %}selected{% endif %}>{{ type }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="condition" class="form-label">Condition</label>
+                <select class="form-select" id="condition" name="condition">
+                    <option value="">All Conditions</option>
+                    <option value="Excellent" {% if request.args.get('condition') == 'Excellent' %}selected{% endif %}>Excellent</option>
+                    <option value="Good" {% if request.args.get('condition') == 'Good' %}selected{% endif %}>Good</option>
+                    <option value="Fair" {% if request.args.get('condition') == 'Fair' %}selected{% endif %}>Fair</option>
+                    <option value="Poor" {% if request.args.get('condition') == 'Poor' %}selected{% endif %}>Poor</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="search" name="search" placeholder="Username or model" value="{{ request.args.get('search', '') }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </form>
     </div>
 </div>
 
 <!-- Inventory Table -->
 <div class="card">
-    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">All E-Waste Items</h5>
-        <input type="text" id="inventorySearch" class="form-control form-control-sm w-auto" placeholder="Search items...">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">E-waste Items</h5>
+        <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#exportOptions">
+            <i class="fas fa-file-export me-1"></i> Export
+        </button>
     </div>
+    
+    <div class="collapse" id="exportOptions">
+        <div class="card-body border-bottom">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <h6>Export Inventory Data</h6>
+                    <p class="small text-muted">Download the current inventory data in different formats</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="btn-group">
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-file-csv me-1"></i> CSV
+                        </button>
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-file-excel me-1"></i> Excel
+                        </button>
+                        <button class="btn btn-outline-primary">
+                            <i class="fas fa-file-pdf me-1"></i> PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <div class="card-body p-0">
         {% if ewaste_items %}
             <div class="table-responsive">
-                <table class="table table-hover mb-0" id="inventoryTable">
+                <table class="table table-hover table-striped">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>User</th>
                             <th>Type</th>
                             <th>Model</th>
                             <th>Condition</th>
-                            <th>Est. Price</th>
+                            <th>Owner</th>
                             <th>Eco Points</th>
-                            <th>Added Date</th>
-                            <th>Status</th>
+                            <th>Est. Value</th>
+                            <th>Date Added</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in ewaste_items %}
-                            {% set pickup_status = 'N/A' %}
-                            {% for schedule in item.schedules %}
-                                {% set pickup_status = schedule.status %}
-                            {% endfor %}
                             <tr>
                                 <td>{{ item.id }}</td>
+                                <td>{{ item.ewaste_type }}</td>
+                                <td>{{ item.model or 'N/A' }}</td>
+                                <td>
+                                    <span class="badge {% if item.condition == 'Excellent' %}bg-success{% elif item.condition == 'Good' %}bg-info{% elif item.condition == 'Fair' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                        {{ item.condition }}
+                                    </span>
+                                </td>
                                 <td>
                                     <a href="{{ url_for('admin_user_details', user_id=item.user_id) }}">
                                         {{ item.user.username }}
                                     </a>
                                 </td>
-                                <td>{{ item.ewaste_type }}</td>
-                                <td>{{ item.model if item.model else 'N/A' }}</td>
-                                <td>{{ item.condition }}</td>
+                                <td>{{ item.eco_points }}</td>
                                 <td>${{ item.estimated_price }}</td>
+                                <td>{{ item.created_at.strftime('%m/%d/%Y') }}</td>
                                 <td>
-                                    <span class="badge bg-success">{{ item.eco_points }}</span>
-                                </td>
-                                <td>{{ item.created_at.strftime('%b %d, %Y') }}</td>
-                                <td>
-                                    <span class="badge {% if pickup_status == 'Pending' %}bg-warning text-dark{% elif pickup_status == 'Collected' %}bg-success{% else %}bg-secondary{% endif %}">
-                                        {{ pickup_status }}
-                                    </span>
+                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#itemModal{{ item.id }}">
+                                        <i class="fas fa-info-circle"></i> Details
+                                    </button>
+                                    
+                                    <!-- Item Details Modal -->
+                                    <div class="modal fade" id="itemModal{{ item.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">{{ item.ewaste_type }} Details</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <h6>Item Information</h6>
+                                                            <table class="table table-sm">
+                                                                <tr>
+                                                                    <td class="fw-bold">ID:</td>
+                                                                    <td>{{ item.id }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="fw-bold">Type:</td>
+                                                                    <td>{{ item.ewaste_type }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="fw-bold">Model:</td>
+                                                                    <td>{{ item.model or 'Not specified' }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="fw-bold">RAM:</td>
+                                                                    <td>{{ item.ram or 'N/A' }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="fw-bold">Condition:</td>
+                                                                    <td>
+                                                                        <span class="badge {% if item.condition == 'Excellent' %}bg-success{% elif item.condition == 'Good' %}bg-info{% elif item.condition == 'Fair' %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                                                            {{ item.condition }}
+                                                                        </span>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="fw-bold">Added On:</td>
+                                                                    <td>{{ item.created_at.strftime('%m/%d/%Y') }}</td>
+                                                                </tr>
+                                                            </table>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <h6>Value Information</h6>
+                                                            <table class="table table-sm">
+                                                                <tr>
+                                                                    <td class="fw-bold">Eco Points:</td>
+                                                                    <td>{{ item.eco_points }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="fw-bold">Estimated Value:</td>
+                                                                    <td>${{ item.estimated_price }}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="fw-bold">Owner:</td>
+                                                                    <td>
+                                                                        <a href="{{ url_for('admin_user_details', user_id=item.user_id) }}">
+                                                                            {{ item.user.username }}
+                                                                        </a>
+                                                                    </td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td class="fw-bold">Pickup Status:</td>
+                                                                    <td>
+                                                                        {% if item.schedules|length > 0 %}
+                                                                            {% set latest_schedule = item.schedules|sort(attribute='scheduled_at', reverse=True)|first %}
+                                                                            <span class="badge {% if latest_schedule.status == 'Pending' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                                                                {{ latest_schedule.status }}
+                                                                            </span>
+                                                                        {% else %}
+                                                                            <span class="badge bg-secondary">No Pickup</span>
+                                                                        {% endif %}
+                                                                    </td>
+                                                                </tr>
+                                                            </table>
+                                                            
+                                                            {% if item.classification_result %}
+                                                                <h6 class="mt-3">AI Classification</h6>
+                                                                <div class="card bg-dark">
+                                                                    <div class="card-body">
+                                                                        <pre class="mb-0 text-white"><code>{{ item.classification_result }}</code></pre>
+                                                                    </div>
+                                                                </div>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {% if item.image_path %}
+                                                        <hr>
+                                                        <div class="text-center">
+                                                            <h6>Item Image</h6>
+                                                            <img src="{{ item.image_path }}" alt="{{ item.ewaste_type }}" class="img-fluid img-thumbnail" style="max-height: 300px;">
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <a href="{{ url_for('admin_user_details', user_id=item.user_id) }}" class="btn btn-info">
+                                                        <i class="fas fa-user me-1"></i> View Owner
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -152,8 +325,8 @@
                 </table>
             </div>
         {% else %}
-            <div class="text-center py-4">
-                <p>No e-waste items in inventory.</p>
+            <div class="alert alert-info m-3">
+                No e-waste items found.
             </div>
         {% endif %}
     </div>
@@ -164,70 +337,64 @@
 <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Search functionality
-        const searchInput = document.getElementById('inventorySearch');
-        const table = document.getElementById('inventoryTable');
-        const rows = table.querySelectorAll('tbody tr');
+        // E-waste Type Chart
+        const typeCtx = document.getElementById('ewasteTypeChart').getContext('2d');
+        const typeData = {
+            labels: {{ type_labels|tojson }},
+            datasets: [{
+                label: 'Number of Items',
+                data: {{ type_counts|tojson }},
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 99, 132, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(153, 102, 255, 0.7)',
+                    'rgba(255, 159, 64, 0.7)',
+                    'rgba(199, 199, 199, 0.7)'
+                ],
+                borderWidth: 1
+            }]
+        };
         
-        searchInput.addEventListener('keyup', function() {
-            const searchText = this.value.toLowerCase();
-            
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                if (text.includes(searchText)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        });
-        
-        // Generate distribution chart
-        const ewasteTypeCtx = document.getElementById('ewasteDistributionChart').getContext('2d');
-        
-        // Collect data for chart
-        const typeCounts = {};
-        const items = {{ ewaste_items|length }};
-        
-        {% for item in ewaste_items %}
-            if ("{{ item.ewaste_type }}" in typeCounts) {
-                typeCounts["{{ item.ewaste_type }}"]++;
-            } else {
-                typeCounts["{{ item.ewaste_type }}"] = 1;
-            }
-        {% endfor %}
-        
-        // Convert to arrays for Chart.js
-        const types = Object.keys(typeCounts);
-        const counts = types.map(type => typeCounts[type]);
-        
-        // Generate colors
-        const colors = [
-            '#20c997', '#0dcaf0', '#6610f2', '#fd7e14', '#dc3545',
-            '#0d6efd', '#6f42c1', '#d63384', '#ffc107', '#198754',
-            '#6c757d', '#0d6efd', '#6610f2', '#6f42c1', '#d63384'
-        ];
-        
-        // Create chart
-        new Chart(ewasteTypeCtx, {
-            type: 'bar',
-            data: {
-                labels: types,
-                datasets: [{
-                    label: 'Number of Items',
-                    data: counts,
-                    backgroundColor: colors.slice(0, types.length),
-                    borderWidth: 1
-                }]
-            },
+        new Chart(typeCtx, {
+            type: 'doughnut',
+            data: typeData,
             options: {
                 responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        }
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    }
+                }
+            }
+        });
+        
+        // Condition Chart
+        const conditionCtx = document.getElementById('conditionChart').getContext('2d');
+        const conditionData = {
+            labels: ['Excellent', 'Good', 'Fair', 'Poor'],
+            datasets: [{
+                label: 'Number of Items',
+                data: {{ condition_counts|tojson }},
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.7)',    // success green
+                    'rgba(23, 162, 184, 0.7)',   // info blue
+                    'rgba(255, 193, 7, 0.7)',    // warning yellow
+                    'rgba(220, 53, 69, 0.7)'     // danger red
+                ],
+                borderWidth: 1
+            }]
+        };
+        
+        new Chart(conditionCtx, {
+            type: 'pie',
+            data: conditionData,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
                     }
                 }
             }

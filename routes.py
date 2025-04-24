@@ -1,6 +1,6 @@
 import os
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import render_template, request, redirect, url_for, flash, session, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -586,8 +586,48 @@ def admin_users():
         flash('Please login as admin to access user management.', 'warning')
         return redirect(url_for('admin_login'))
     
-    users = User.query.order_by(User.username).all()
-    return render_template('admin/users.html', users=users)
+    # Get filter parameters
+    search = request.args.get('search', '')
+    sort_by = request.args.get('sort', 'username')
+    order = request.args.get('order', 'asc')
+    
+    # Base query
+    query = User.query
+    
+    # Apply search filter
+    if search:
+        query = query.filter(db.or_(
+            User.username.ilike(f'%{search}%'),
+            User.email.ilike(f'%{search}%')
+        ))
+    
+    # Apply sorting
+    if sort_by == 'username':
+        query = query.order_by(User.username.asc() if order == 'asc' else User.username.desc())
+    elif sort_by == 'date':
+        query = query.order_by(User.created_at.asc() if order == 'asc' else User.created_at.desc())
+    elif sort_by == 'points':
+        query = query.order_by(User.eco_points.asc() if order == 'asc' else User.eco_points.desc())
+    
+    # Execute query
+    users = query.all()
+    
+    # Calculate statistics
+    thirty_days_ago = datetime.now() - timedelta(days=30)
+    new_users_count = User.query.filter(User.created_at >= thirty_days_ago).count()
+    
+    if users:
+        avg_eco_points = sum(user.eco_points for user in users) / len(users)
+        total_carbon_saved = sum(user.carbon_saved for user in users)
+    else:
+        avg_eco_points = 0
+        total_carbon_saved = 0
+    
+    return render_template('admin/users.html', 
+                          users=users,
+                          new_users_count=new_users_count,
+                          avg_eco_points=avg_eco_points,
+                          total_carbon_saved=total_carbon_saved)
 
 # Admin view user details
 @app.route('/admin/users/<int:user_id>')
@@ -607,6 +647,57 @@ def admin_user_details(user_id):
                           pickups=pickups,
                           redemptions=redemptions)
 
+# Admin update user (eco points, reset password, delete account)
+@app.route('/admin/users/<int:user_id>/update', methods=['POST'])
+def admin_update_user(user_id):
+    if 'admin_id' not in session:
+        flash('Please login as admin to update user details.', 'warning')
+        return redirect(url_for('admin_login'))
+    
+    user = User.query.get_or_404(user_id)
+    action = request.form.get('action')
+    
+    if action == 'update_points':
+        try:
+            new_points = int(request.form.get('eco_points', 0))
+            update_reason = request.form.get('update_reason', 'Admin adjustment')
+            
+            # Record the change
+            change = new_points - user.eco_points
+            if change != 0:
+                adjustment_type = "increase" if change > 0 else "decrease"
+                user.eco_points = new_points
+                db.session.commit()
+                flash(f'User eco points {adjustment_type}d by {abs(change)} points. Reason: {update_reason}', 'success')
+            else:
+                flash('No change in eco points.', 'info')
+        except ValueError:
+            flash('Invalid eco points value.', 'danger')
+            
+    elif action == 'reset_password':
+        # Generate a random temporary password
+        import random
+        import string
+        temp_password = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+        
+        user.set_password(temp_password)
+        db.session.commit()
+        flash(f'Password reset successful. Temporary password: {temp_password}', 'success')
+        
+    elif action == 'delete_user':
+        # First delete all associated records
+        Redemption.query.filter_by(user_id=user_id).delete()
+        Schedule.query.filter_by(user_id=user_id).delete()
+        Ewaste.query.filter_by(user_id=user_id).delete()
+        
+        # Then delete the user
+        db.session.delete(user)
+        db.session.commit()
+        flash('User account and all associated data deleted permanently.', 'success')
+        return redirect(url_for('admin_users'))
+    
+    return redirect(url_for('admin_user_details', user_id=user.id))
+
 # Admin pickup management
 @app.route('/admin/pickups')
 def admin_pickups():
@@ -614,8 +705,52 @@ def admin_pickups():
         flash('Please login as admin to access pickup management.', 'warning')
         return redirect(url_for('admin_login'))
     
-    pickups = Schedule.query.order_by(Schedule.pickup_date).all()
-    return render_template('admin/pickups.html', pickups=pickups)
+    # Get filter parameters
+    status_filter = request.args.get('status', '')
+    date_range = request.args.get('date_range', 'all')
+    search = request.args.get('search', '')
+    
+    # Base query
+    query = Schedule.query
+    
+    # Apply filters
+    if status_filter:
+        query = query.filter(Schedule.status == status_filter)
+        
+    if date_range:
+        today = datetime.now().date()
+        if date_range == 'today':
+            query = query.filter(db.func.date(Schedule.pickup_date) == today)
+        elif date_range == 'week':
+            week_start = today - timedelta(days=today.weekday())
+            week_end = week_start + timedelta(days=6)
+            query = query.filter(db.func.date(Schedule.pickup_date).between(week_start, week_end))
+        elif date_range == 'month':
+            query = query.filter(db.extract('year', Schedule.pickup_date) == today.year,
+                               db.extract('month', Schedule.pickup_date) == today.month)
+    
+    if search:
+        query = query.join(User).join(Ewaste).filter(
+            db.or_(
+                User.username.ilike(f'%{search}%'),
+                Ewaste.ewaste_type.ilike(f'%{search}%')
+            )
+        )
+    
+    # Execute query with ordered results
+    pickups = query.order_by(Schedule.pickup_date).all()
+    
+    # Get counts for stats
+    pending_count = Schedule.query.filter_by(status='Pending').count()
+    collected_count = Schedule.query.filter_by(status='Collected').count()
+    today_count = Schedule.query.filter(db.func.date(Schedule.pickup_date) == datetime.now().date()).count()
+    
+    return render_template('admin/pickups.html', 
+                          pickups=pickups,
+                          pending_count=pending_count,
+                          collected_count=collected_count,
+                          today_count=today_count,
+                          today=datetime.now().date())
 
 # Admin update pickup status
 @app.route('/admin/pickups/<int:pickup_id>/update', methods=['POST'])
@@ -644,8 +779,85 @@ def admin_inventory():
         flash('Please login as admin to access inventory.', 'warning')
         return redirect(url_for('admin_login'))
     
-    ewaste_items = Ewaste.query.join(User).all()
-    return render_template('admin/inventory.html', ewaste_items=ewaste_items)
+    # Get filter parameters
+    ewaste_type_filter = request.args.get('ewaste_type', '')
+    condition_filter = request.args.get('condition', '')
+    search = request.args.get('search', '')
+    
+    # Base query
+    query = Ewaste.query.join(User)
+    
+    # Apply filters
+    if ewaste_type_filter:
+        query = query.filter(Ewaste.ewaste_type == ewaste_type_filter)
+        
+    if condition_filter:
+        query = query.filter(Ewaste.condition == condition_filter)
+    
+    if search:
+        query = query.filter(
+            db.or_(
+                User.username.ilike(f'%{search}%'),
+                Ewaste.model.ilike(f'%{search}%')
+            )
+        )
+    
+    # Execute query
+    ewaste_items = query.all()
+    
+    # Calculate totals for stats
+    total_value = sum(item.estimated_price or 0 for item in ewaste_items)
+    total_eco_points = sum(item.eco_points or 0 for item in ewaste_items)
+    
+    # Calculate carbon saved (using utility function)
+    carbon_saved = 0
+    for item in ewaste_items:
+        carbon_saved += calculate_carbon_footprint(item.ewaste_type)
+    
+    # Get unique e-waste types for filter dropdown
+    ewaste_types = db.session.query(Ewaste.ewaste_type).distinct().order_by(Ewaste.ewaste_type).all()
+    ewaste_types = [t[0] for t in ewaste_types]
+    
+    # Prepare data for charts
+    type_data = {}
+    for item in ewaste_items:
+        if item.ewaste_type in type_data:
+            type_data[item.ewaste_type] += 1
+        else:
+            type_data[item.ewaste_type] = 1
+    
+    # If we have too many types, group the less common ones as "Other"
+    if len(type_data) > 6:
+        sorted_types = sorted(type_data.items(), key=lambda x: x[1], reverse=True)
+        top_types = dict(sorted_types[:5])
+        other_count = sum(count for _, count in sorted_types[5:])
+        top_types['Other'] = other_count
+        type_data = top_types
+    
+    type_labels = list(type_data.keys())
+    type_counts = list(type_data.values())
+    
+    # Condition breakdown
+    condition_counts = [0, 0, 0, 0]  # Excellent, Good, Fair, Poor
+    for item in ewaste_items:
+        if item.condition == 'Excellent':
+            condition_counts[0] += 1
+        elif item.condition == 'Good':
+            condition_counts[1] += 1
+        elif item.condition == 'Fair':
+            condition_counts[2] += 1
+        elif item.condition == 'Poor':
+            condition_counts[3] += 1
+    
+    return render_template('admin/inventory.html', 
+                          ewaste_items=ewaste_items,
+                          total_value=total_value,
+                          total_eco_points=total_eco_points,
+                          carbon_saved=carbon_saved,
+                          ewaste_types=ewaste_types,
+                          type_labels=type_labels,
+                          type_counts=type_counts,
+                          condition_counts=condition_counts)
 
 # Admin rewards management
 @app.route('/admin/rewards', methods=['GET', 'POST'])
