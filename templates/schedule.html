@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}Schedule Pickup - Ecycle{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Schedule E-Waste Pickup</h1>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">E-Waste Classification</h5>
+            </div>
+            <div class="card-body">
+                <p>Not sure what type of e-waste you have? Upload a photo and let our AI classify it for you.</p>
+                
+                <form id="imageUploadForm" method="POST" enctype="multipart/form-data" class="no-spinner">
+                    <div class="mb-3">
+                        <label for="imageFile" class="form-label">Upload Image</label>
+                        <input type="file" class="form-control" id="imageFile" name="image" accept="image/*">
+                    </div>
+                    <button type="submit" class="btn btn-info">
+                        <i class="fas fa-search me-1"></i> Classify Image
+                    </button>
+                </form>
+                
+                <img id="imagePreview" class="d-none mt-3 img-fluid" alt="Preview">
+                
+                <div id="classificationSpinner" class="text-center mt-3 d-none">
+                    <div class="spinner-border text-info" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Classifying your e-waste...</p>
+                </div>
+                
+                <div id="classificationResult" class="mt-3 d-none"></div>
+                <div id="recyclingInfo" class="mt-3 d-none"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Pickup Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('schedule') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label for="ewaste_type" class="form-label">{{ form.ewaste_type.label }}</label>
+                        {{ form.ewaste_type(class="form-control", id="ewaste_type") }}
+                        {% if form.ewaste_type.errors %}
+                            {% for error in form.ewaste_type.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="model" class="form-label">{{ form.model.label }}</label>
+                        {{ form.model(class="form-control", id="model", placeholder="e.g., iPhone 11, Dell XPS 15") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="ram" class="form-label">{{ form.ram.label }}</label>
+                        {{ form.ram(class="form-control", id="ram") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="condition" class="form-label">{{ form.condition.label }}</label>
+                        {{ form.condition(class="form-control", id="condition") }}
+                        {% if form.condition.errors %}
+                            {% for error in form.condition.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="pickup_date" class="form-label">{{ form.pickup_date.label }}</label>
+                        {{ form.pickup_date(class="form-control", id="pickup_date", type="datetime-local") }}
+                        {% if form.pickup_date.errors %}
+                            {% for error in form.pickup_date.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="pickup_address" class="form-label">{{ form.pickup_address.label }}</label>
+                        {{ form.pickup_address(class="form-control", id="pickup_address", rows="3", placeholder="Enter your full address for pickup") }}
+                        {% if form.pickup_address.errors %}
+                            {% for error in form.pickup_address.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Important Information</h5>
+            </div>
+            <div class="card-body">
+                <h6>Before Your Pickup:</h6>
+                <ul>
+                    <li>Ensure your e-waste is easily accessible for our pickup team.</li>
+                    <li>Remove any personal data from devices (factory reset recommended).</li>
+                    <li>If possible, include original accessories and packaging.</li>
+                    <li>For large items (TVs, refrigerators, etc.), please ensure there's clear access.</li>
+                </ul>
+                
+                <h6>What Happens Next:</h6>
+                <ol>
+                    <li>Our team will arrive at your scheduled time.</li>
+                    <li>Your e-waste will be evaluated to confirm its condition.</li>
+                    <li>You'll receive a confirmation of pickup and eco points will be added to your account.</li>
+                    <li>Your e-waste will be properly recycled or refurbished according to environmental standards.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/image-upload.js') }}"></script>
+{% endblock %}

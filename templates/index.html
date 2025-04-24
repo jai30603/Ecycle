@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Ecycle - Smart E-Waste Pickup Service{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-4">Smart E-Waste Recycling Made Easy</h1>
+        <p class="lead mb-4">Schedule pickups, earn rewards, and help save the planet one device at a time</p>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+            {% if 'user_id' in session %}
+            <a href="{{ url_for('schedule') }}" class="btn btn-primary btn-lg px-4 gap-3">Schedule Pickup</a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-lg px-4">My Dashboard</a>
+            {% else %}
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 gap-3">Get Started</a>
+            <a href="{{ url_for('learn') }}" class="btn btn-outline-light btn-lg px-4">Learn More</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">How It Works</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="feature-icon mx-auto">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <div class="card-body">
+                        <h4 class="card-title">1. Identify Your E-Waste</h4>
+                        <p class="card-text">Take a photo of your electronic waste and our AI will identify it for proper recycling.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="feature-icon mx-auto">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="card-body">
+                        <h4 class="card-title">2. Schedule a Pickup</h4>
+                        <p class="card-text">Choose a convenient time for us to collect your e-waste directly from your doorstep.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 text-center p-4">
+                    <div class="feature-icon mx-auto">
+                        <i class="fas fa-award"></i>
+                    </div>
+                    <div class="card-body">
+                        <h4 class="card-title">3. Earn & Redeem</h4>
+                        <p class="card-text">Get eco points for your contribution and redeem them for exciting rewards and discounts.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Environmental Impact -->
+<section class="py-5 bg-dark">
+    <div class="container">
+        <h2 class="text-center mb-5">Our Environmental Impact</h2>
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="impact-counter">5,000+</div>
+                <h4>Devices Recycled</h4>
+                <p>Electronic devices diverted from landfills</p>
+            </div>
+            <div class="col-md-4">
+                <div class="impact-counter">25,000+</div>
+                <h4>kg CO2 Saved</h4>
+                <p>Reduction in carbon emissions</p>
+            </div>
+            <div class="col-md-4">
+                <div class="impact-counter">1,200+</div>
+                <h4>Happy Users</h4>
+                <p>Helping to make a difference</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Latest News -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Latest E-Waste News</h2>
+        <div class="row">
+            {% if news %}
+                {% for item in news %}
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ item.title }}</h5>
+                            {% if item.published %}
+                            <p class="card-subtitle mb-2 text-muted">{{ item.published }}</p>
+                            {% endif %}
+                            {% if item.summary %}
+                            <p class="card-text">{{ item.summary | safe }}</p>
+                            {% endif %}
+                            <a href="{{ item.link }}" class="btn btn-sm btn-outline-info" target="_blank">Read More</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center">
+                    <p>No news available at the moment. Please check back later.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 bg-info text-dark">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Recycle Your E-Waste?</h2>
+        <p class="lead mb-4">Join thousands of users making a positive impact on the environment</p>
+        {% if 'user_id' in session %}
+        <a href="{{ url_for('schedule') }}" class="btn btn-dark btn-lg px-4">Schedule a Pickup Now</a>
+        {% else %}
+        <a href="{{ url_for('register') }}" class="btn btn-dark btn-lg px-4">Sign Up Today</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+
+{% block title %}E-waste Inventory - Ecycle Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>E-Waste Inventory</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-info">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ ewaste_items|length }}</h3>
+                <p class="text-muted mb-0">Total Items</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                {% set unique_types = {} %}
+                {% for item in ewaste_items %}
+                    {% set _ = unique_types.update({item.ewaste_type: 1}) %}
+                {% endfor %}
+                <h3>{{ unique_types|length }}</h3>
+                <p class="text-muted mb-0">Different Types</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                {% set total_value = 0 %}
+                {% for item in ewaste_items %}
+                    {% set total_value = total_value + item.estimated_price %}
+                {% endfor %}
+                <h3>${{ total_value }}</h3>
+                <p class="text-muted mb-0">Total Value</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                {% set total_points = 0 %}
+                {% for item in ewaste_items %}
+                    {% set total_points = total_points + item.eco_points %}
+                {% endfor %}
+                <h3>{{ total_points }}</h3>
+                <p class="text-muted mb-0">Total Eco Points</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Distribution Chart -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">E-Waste Type Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="ewasteDistributionChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Top E-Waste Types</h5>
+            </div>
+            <div class="card-body p-0">
+                {% set type_counts = {} %}
+                {% for item in ewaste_items %}
+                    {% if item.ewaste_type in type_counts %}
+                        {% set _ = type_counts.update({item.ewaste_type: type_counts[item.ewaste_type] + 1}) %}
+                    {% else %}
+                        {% set _ = type_counts.update({item.ewaste_type: 1}) %}
+                    {% endif %}
+                {% endfor %}
+                
+                <ul class="list-group list-group-flush">
+                    {% for type, count in type_counts|dictsort(by='value', reverse=true)[:5] %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ type }}
+                            <span class="badge bg-info">{{ count }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Inventory Table -->
+<div class="card">
+    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">All E-Waste Items</h5>
+        <input type="text" id="inventorySearch" class="form-control form-control-sm w-auto" placeholder="Search items...">
+    </div>
+    <div class="card-body p-0">
+        {% if ewaste_items %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Type</th>
+                            <th>Model</th>
+                            <th>Condition</th>
+                            <th>Est. Price</th>
+                            <th>Eco Points</th>
+                            <th>Added Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in ewaste_items %}
+                            {% set pickup_status = 'N/A' %}
+                            {% for schedule in item.schedules %}
+                                {% set pickup_status = schedule.status %}
+                            {% endfor %}
+                            <tr>
+                                <td>{{ item.id }}</td>
+                                <td>
+                                    <a href="{{ url_for('admin_user_details', user_id=item.user_id) }}">
+                                        {{ item.user.username }}
+                                    </a>
+                                </td>
+                                <td>{{ item.ewaste_type }}</td>
+                                <td>{{ item.model if item.model else 'N/A' }}</td>
+                                <td>{{ item.condition }}</td>
+                                <td>${{ item.estimated_price }}</td>
+                                <td>
+                                    <span class="badge bg-success">{{ item.eco_points }}</span>
+                                </td>
+                                <td>{{ item.created_at.strftime('%b %d, %Y') }}</td>
+                                <td>
+                                    <span class="badge {% if pickup_status == 'Pending' %}bg-warning text-dark{% elif pickup_status == 'Collected' %}bg-success{% else %}bg-secondary{% endif %}">
+                                        {{ pickup_status }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <p>No e-waste items in inventory.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Search functionality
+        const searchInput = document.getElementById('inventorySearch');
+        const table = document.getElementById('inventoryTable');
+        const rows = table.querySelectorAll('tbody tr');
+        
+        searchInput.addEventListener('keyup', function() {
+            const searchText = this.value.toLowerCase();
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // Generate distribution chart
+        const ewasteTypeCtx = document.getElementById('ewasteDistributionChart').getContext('2d');
+        
+        // Collect data for chart
+        const typeCounts = {};
+        const items = {{ ewaste_items|length }};
+        
+        {% for item in ewaste_items %}
+            if ("{{ item.ewaste_type }}" in typeCounts) {
+                typeCounts["{{ item.ewaste_type }}"]++;
+            } else {
+                typeCounts["{{ item.ewaste_type }}"] = 1;
+            }
+        {% endfor %}
+        
+        // Convert to arrays for Chart.js
+        const types = Object.keys(typeCounts);
+        const counts = types.map(type => typeCounts[type]);
+        
+        // Generate colors
+        const colors = [
+            '#20c997', '#0dcaf0', '#6610f2', '#fd7e14', '#dc3545',
+            '#0d6efd', '#6f42c1', '#d63384', '#ffc107', '#198754',
+            '#6c757d', '#0d6efd', '#6610f2', '#6f42c1', '#d63384'
+        ];
+        
+        // Create chart
+        new Chart(ewasteTypeCtx, {
+            type: 'bar',
+            data: {
+                labels: types,
+                datasets: [{
+                    label: 'Number of Items',
+                    data: counts,
+                    backgroundColor: colors.slice(0, types.length),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

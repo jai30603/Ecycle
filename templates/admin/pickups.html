@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}Pickup Management - Ecycle Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Pickup Management</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-info">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ pickups|length }}</h3>
+                <p class="text-muted mb-0">Total Pickups</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ pickups|selectattr('status', 'equalto', 'Pending')|list|length }}</h3>
+                <p class="text-muted mb-0">Pending Pickups</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ pickups|selectattr('status', 'equalto', 'Collected')|list|length }}</h3>
+                <p class="text-muted mb-0">Completed Pickups</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                {% set today_pickups = 0 %}
+                {% for pickup in pickups %}
+                    {% if pickup.pickup_date.date() == now.date() %}
+                        {% set today_pickups = today_pickups + 1 %}
+                    {% endif %}
+                {% endfor %}
+                <h3>{{ today_pickups }}</h3>
+                <p class="text-muted mb-0">Today's Pickups</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pickup Management Table -->
+<div class="card">
+    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">All Pickups</h5>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-light active" id="allPickupsBtn">All</button>
+            <button class="btn btn-sm btn-light" id="pendingPickupsBtn">Pending</button>
+            <button class="btn btn-sm btn-light" id="completedPickupsBtn">Completed</button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if pickups %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="pickupsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>E-waste Type</th>
+                            <th>Pickup Date</th>
+                            <th>Address</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pickup in pickups %}
+                            <tr data-status="{{ pickup.status }}">
+                                <td>{{ pickup.id }}</td>
+                                <td>
+                                    <a href="{{ url_for('admin_user_details', user_id=pickup.user_id) }}">
+                                        {{ pickup.user.username }}
+                                    </a>
+                                </td>
+                                <td>{{ pickup.ewaste.ewaste_type }}</td>
+                                <td>{{ pickup.pickup_date.strftime('%b %d, %Y %H:%M') }}</td>
+                                <td>{{ pickup.pickup_address|truncate(30) }}</td>
+                                <td>
+                                    <span class="badge {% if pickup.status == 'Pending' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                        {{ pickup.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <form action="{{ url_for('admin_update_pickup', pickup_id=pickup.id) }}" method="POST" class="d-flex gap-2">
+                                        <select name="status" class="form-select form-select-sm">
+                                            <option value="Pending" {% if pickup.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                            <option value="Collected" {% if pickup.status == 'Collected' %}selected{% endif %}>Collected</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <p>No pickups scheduled yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Upcoming Pickups Calendar -->
+<div class="card mt-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0">Upcoming Pickups</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% set next_days = 7 %}
+            {% for day_offset in range(next_days) %}
+                {% set day = now.date() + day_offset|timedelta %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-dark">
+                            <h6 class="mb-0">{{ day.strftime('%A, %b %d') }}</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul class="list-group list-group-flush">
+                                {% set day_pickups = [] %}
+                                {% for pickup in pickups %}
+                                    {% if pickup.pickup_date.date() == day and pickup.status == 'Pending' %}
+                                        {% set day_pickups = day_pickups + [pickup] %}
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if day_pickups %}
+                                    {% for pickup in day_pickups %}
+                                        <li class="list-group-item">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <p class="mb-0"><strong>{{ pickup.pickup_date.strftime('%H:%M') }}</strong></p>
+                                                    <p class="mb-0">{{ pickup.user.username }}</p>
+                                                    <small>{{ pickup.ewaste.ewaste_type }}</small>
+                                                </div>
+                                                <form action="{{ url_for('admin_update_pickup', pickup_id=pickup.id) }}" method="POST">
+                                                    <input type="hidden" name="status" value="Collected">
+                                                    <button type="submit" class="btn btn-sm btn-success">
+                                                        <i class="fas fa-check me-1"></i> Mark Collected
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li class="list-group-item text-center py-3">
+                                        <p class="mb-0 text-muted">No pickups scheduled</p>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Pickup filtering functionality
+        const allBtn = document.getElementById('allPickupsBtn');
+        const pendingBtn = document.getElementById('pendingPickupsBtn');
+        const completedBtn = document.getElementById('completedPickupsBtn');
+        const table = document.getElementById('pickupsTable');
+        const rows = table.querySelectorAll('tbody tr');
+        
+        // Show all pickups (default)
+        allBtn.addEventListener('click', function() {
+            setActiveButton(allBtn);
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+        });
+        
+        // Show only pending pickups
+        pendingBtn.addEventListener('click', function() {
+            setActiveButton(pendingBtn);
+            rows.forEach(row => {
+                if (row.getAttribute('data-status') === 'Pending') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // Show only completed pickups
+        completedBtn.addEventListener('click', function() {
+            setActiveButton(completedBtn);
+            rows.forEach(row => {
+                if (row.getAttribute('data-status') === 'Collected') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // Helper function to set active button
+        function setActiveButton(activeBtn) {
+            [allBtn, pendingBtn, completedBtn].forEach(btn => {
+                btn.classList.remove('active');
+            });
+            activeBtn.classList.add('active');
+        }
+    });
+</script>
+{% endblock %}

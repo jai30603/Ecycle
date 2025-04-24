@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Ecycle{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="mb-4">Welcome, {{ user.username }}</h1>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <div class="d-flex justify-content-md-end align-items-center">
+            <div>
+                <span class="text-muted">Eco Points:</span>
+                <span class="fs-4 ms-2 text-success">{{ user.eco_points }}</span>
+            </div>
+            <a href="{{ url_for('rewards') }}" class="btn btn-outline-info ms-3">
+                <i class="fas fa-award me-1"></i> Rewards
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <div class="stat-icon mb-3">
+                    <i class="fas fa-recycle"></i>
+                </div>
+                <h3 class="card-title">{{ total_items }}</h3>
+                <p class="card-text text-muted">Items Recycled</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <div class="stat-icon mb-3">
+                    <i class="fas fa-leaf"></i>
+                </div>
+                <h3 class="card-title">{{ total_carbon_saved|round(1) }} kg</h3>
+                <p class="card-text text-muted">CO₂ Saved</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card stat-card h-100">
+            <div class="card-body text-center">
+                <div class="stat-icon mb-3">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <h3 class="card-title">{{ completed_pickups }}</h3>
+                <p class="card-text text-muted">Completed Pickups</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Upcoming Pickups -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Upcoming Pickups</h5>
+                <a href="{{ url_for('schedule') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-plus me-1"></i> New Pickup
+                </a>
+            </div>
+            <div class="card-body">
+                {% if pickups %}
+                    <div class="list-group">
+                        {% for pickup in pickups %}
+                            {% if pickup.status == 'Pending' %}
+                                <div class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ pickup.ewaste.ewaste_type }}</h6>
+                                        <small>{{ pickup.pickup_date.strftime('%b %d, %Y') }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ pickup.pickup_address }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">{{ pickup.ewaste.model if pickup.ewaste.model else 'No model info' }}</small>
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% if not pickups|selectattr('status', 'equalto', 'Pending')|list %}
+                        <p class="text-center mt-3">No pending pickups scheduled.</p>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-4">
+                        <p>No pickups scheduled yet.</p>
+                        <a href="{{ url_for('schedule') }}" class="btn btn-primary">Schedule Your First Pickup</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Latest News -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Latest E-Waste News</h5>
+            </div>
+            <div class="card-body">
+                {% if news %}
+                    <div class="list-group">
+                        {% for item in news[:3] %}
+                            <a href="{{ item.link }}" class="list-group-item list-group-item-action" target="_blank">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ item.title }}</h6>
+                                    {% if item.published %}
+                                        <small>{{ item.published.split()[0] }}</small>
+                                    {% endif %}
+                                </div>
+                                {% if item.summary %}
+                                    <small class="text-muted">{{ item.summary|striptags|truncate(100) }}</small>
+                                {% endif %}
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-center">No news available at the moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Redemptions -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Rewards</h5>
+                <a href="{{ url_for('rewards') }}" class="btn btn-sm btn-outline-info">
+                    <i class="fas fa-gift me-1"></i> View All
+                </a>
+            </div>
+            <div class="card-body">
+                {% if recent_redemptions %}
+                    <div class="list-group">
+                        {% for redemption in recent_redemptions %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ redemption.reward.name }}</h6>
+                                    <small>{{ redemption.redeemed_at.strftime('%b %d, %Y') }}</small>
+                                </div>
+                                <p class="mb-1">Points spent: <span class="text-success">{{ redemption.points_spent }}</span></p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">{{ redemption.reward.reward_type }}</small>
+                                    <span class="badge {% if redemption.status == 'Pending' %}bg-warning text-dark{% elif redemption.status == 'Processed' %}bg-info{% else %}bg-success{% endif %}">
+                                        {{ redemption.status }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p>No rewards redeemed yet.</p>
+                        <a href="{{ url_for('rewards') }}" class="btn btn-info">Browse Rewards</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Environmental Impact -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Your Environmental Impact</h5>
+            </div>
+            <div class="card-body text-center">
+                <div class="my-4">
+                    <h4>Carbon Footprint Reduced</h4>
+                    <div class="progress eco-progress mb-3 mx-auto" style="max-width: 300px;">
+                        {% set percentage = (total_carbon_saved / 100) * 100 if total_carbon_saved <= 100 else 100 %}
+                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ percentage }}%;" 
+                             aria-valuenow="{{ percentage }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ percentage|round }}%
+                        </div>
+                    </div>
+                    <p>{{ total_carbon_saved|round(1) }} kg of CO₂ saved</p>
+                    
+                    <div class="mt-4">
+                        <h5>That's equivalent to:</h5>
+                        <div class="row g-3 mt-2">
+                            <div class="col-6">
+                                <div class="card bg-dark">
+                                    <div class="card-body py-3">
+                                        <i class="fas fa-tree text-success fs-4 mb-2"></i>
+                                        <h6>{{ (total_carbon_saved / 21)|round(1) }} Trees</h6>
+                                        <small class="text-muted">CO₂ absorption per year</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card bg-dark">
+                                    <div class="card-body py-3">
+                                        <i class="fas fa-car text-info fs-4 mb-2"></i>
+                                        <h6>{{ (total_carbon_saved / 2.3)|round(1) }} km</h6>
+                                        <small class="text-muted">Car travel avoided</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    // Sample data for demonstration - would be replaced with real user data
+    const ecoPointsData = {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        ecoPoints: [10, 25, 15, 30, 45, {{ user.eco_points }}]
+    };
+    
+    // Initialize charts
+    document.addEventListener('DOMContentLoaded', function() {
+        createUserStatsChart('ecoPointsChart', ecoPointsData);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Ecycle{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="mb-0">Admin Dashboard</h1>
+        <p class="text-muted">Manage e-waste pickups, users, and rewards</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <div class="btn-group">
+            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-info">
+                <i class="fas fa-users me-1"></i> Users
+            </a>
+            <a href="{{ url_for('admin_pickups') }}" class="btn btn-outline-info">
+                <i class="fas fa-truck me-1"></i> Pickups
+            </a>
+            <a href="{{ url_for('admin_rewards') }}" class="btn btn-outline-info">
+                <i class="fas fa-gift me-1"></i> Rewards
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card admin-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted">Total Users</h6>
+                        <h3>{{ total_users }}</h3>
+                    </div>
+                    <div class="fs-1 text-info">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card admin-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted">E-waste Items</h6>
+                        <h3>{{ total_ewaste }}</h3>
+                    </div>
+                    <div class="fs-1 text-info">
+                        <i class="fas fa-laptop"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card admin-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted">Pending Pickups</h6>
+                        <h3>{{ pending_pickups }}</h3>
+                    </div>
+                    <div class="fs-1 text-warning">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card admin-card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted">Completed Pickups</h6>
+                        <h3>{{ completed_pickups }}</h3>
+                    </div>
+                    <div class="fs-1 text-success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row g-4 mb-4">
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">Pickup Activity</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="pickupsChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header">
+                <h5 class="mb-0">E-waste Types</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="ewasteTypesAdminChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Recent Users -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Users</h5>
+                <a href="{{ url_for('admin_users') }}" class="btn btn-sm btn-outline-info">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_users %}
+                    <div class="list-group list-group-flush">
+                        {% for user in recent_users %}
+                            <a href="{{ url_for('admin_user_details', user_id=user.id) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ user.username }}</h6>
+                                    <small>{{ user.created_at.strftime('%b %d, %Y') }}</small>
+                                </div>
+                                <p class="mb-1">{{ user.email }}</p>
+                                <small>Eco Points: <span class="text-success">{{ user.eco_points }}</span></small>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-center py-3">No users found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Upcoming Pickups -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Upcoming Pickups</h5>
+                <a href="{{ url_for('admin_pickups') }}" class="btn btn-sm btn-outline-info">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if upcoming_pickups %}
+                    <div class="list-group list-group-flush">
+                        {% for pickup in upcoming_pickups %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ pickup.user.username }}</h6>
+                                    <small>{{ pickup.pickup_date.strftime('%b %d, %H:%M') }}</small>
+                                </div>
+                                <p class="mb-1">{{ pickup.ewaste.ewaste_type }}</p>
+                                <p class="mb-1 small">{{ pickup.pickup_address|truncate(30) }}</p>
+                                <form action="{{ url_for('admin_update_pickup', pickup_id=pickup.id) }}" method="POST" class="mt-2">
+                                    <div class="d-flex gap-2">
+                                        <select name="status" class="form-select form-select-sm">
+                                            <option value="Pending" {% if pickup.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                            <option value="Collected" {% if pickup.status == 'Collected' %}selected{% endif %}>Collected</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                                    </div>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-center py-3">No upcoming pickups.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Redemptions -->
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent Redemptions</h5>
+                <a href="{{ url_for('admin_redemptions') }}" class="btn btn-sm btn-outline-info">View All</a>
+            </div>
+            <div class="card-body p-0">
+                {% if recent_redemptions %}
+                    <div class="list-group list-group-flush">
+                        {% for redemption in recent_redemptions %}
+                            <div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ redemption.user.username }}</h6>
+                                    <small>{{ redemption.redeemed_at.strftime('%b %d, %Y') }}</small>
+                                </div>
+                                <p class="mb-1">{{ redemption.reward.name }}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">Points: {{ redemption.points_spent }}</small>
+                                    <span class="badge {% if redemption.status == 'Pending' %}bg-warning text-dark{% elif redemption.status == 'Processed' %}bg-info{% else %}bg-success{% endif %}">
+                                        {{ redemption.status }}
+                                    </span>
+                                </div>
+                                <form action="{{ url_for('admin_update_redemption', redemption_id=redemption.id) }}" method="POST" class="mt-2">
+                                    <div class="d-flex gap-2">
+                                        <select name="status" class="form-select form-select-sm">
+                                            <option value="Pending" {% if redemption.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                            <option value="Processed" {% if redemption.status == 'Processed' %}selected{% endif %}>Processed</option>
+                                            <option value="Delivered" {% if redemption.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                                    </div>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-center py-3">No recent redemptions.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin-charts.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sample data for demonstration - would be replaced with real data
+        const pickupData = {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            pending: [5, 8, 12, 7, 9, {{ pending_pickups }}],
+            completed: [3, 5, 8, 10, 15, {{ completed_pickups }}]
+        };
+        
+        const userData = {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            counts: [10, 15, 25, 35, 40, {{ total_users }}]
+        };
+        
+        const ewasteData = {
+            labels: ['Laptop', 'Smartphone', 'Desktop', 'Monitor', 'Printer', 'Other'],
+            counts: [25, 35, 15, 10, 5, 10]
+        };
+        
+        // Initialize admin dashboard charts
+        createAdminDashboardCharts(pickupData, userData, ewasteData);
+    });
+</script>
+{% endblock %}

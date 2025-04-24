@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}Pickup History - Ecycle{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Your Pickup History</h1>
+    <a href="{{ url_for('schedule') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i> Schedule New Pickup
+    </a>
+</div>
+
+{% if pickups %}
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">All Pickups</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>E-waste Type</th>
+                            <th>Model</th>
+                            <th>Address</th>
+                            <th>Points Earned</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pickup in pickups %}
+                            <tr>
+                                <td>{{ pickup.pickup_date.strftime('%b %d, %Y %H:%M') }}</td>
+                                <td>{{ pickup.ewaste.ewaste_type }}</td>
+                                <td>{{ pickup.ewaste.model if pickup.ewaste.model else 'N/A' }}</td>
+                                <td>{{ pickup.pickup_address|truncate(30) }}</td>
+                                <td>
+                                    <span class="badge bg-success">+{{ pickup.ewaste.eco_points }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge {% if pickup.status == 'Pending' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                        {{ pickup.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Summary Card -->
+    <div class="row mt-4">
+        <div class="col-md-6 offset-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h5 class="card-title">Recycling Summary</h5>
+                    <div class="row mt-3">
+                        <div class="col-4">
+                            <h2>{{ pickups|length }}</h2>
+                            <p class="text-muted">Total Pickups</p>
+                        </div>
+                        <div class="col-4">
+                            <h2>{{ pickups|selectattr('status', 'equalto', 'Collected')|list|length }}</h2>
+                            <p class="text-muted">Completed</p>
+                        </div>
+                        <div class="col-4">
+                            {% set total_points = 0 %}
+                            {% for pickup in pickups %}
+                                {% set total_points = total_points + pickup.ewaste.eco_points %}
+                            {% endfor %}
+                            <h2>{{ total_points }}</h2>
+                            <p class="text-muted">Points Earned</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <h4 class="mb-3">You don't have any pickup history yet</h4>
+            <p class="mb-4">Schedule your first e-waste pickup to start earning eco points!</p>
+            <a href="{{ url_for('schedule') }}" class="btn btn-primary">
+                <i class="fas fa-calendar-plus me-1"></i> Schedule Pickup
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

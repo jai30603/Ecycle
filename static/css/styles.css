@@ -1,0 +1,156 @@
+/* Custom styles for Ecycle */
+
+/* Override card background for dark theme */
+.card {
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Custom styling for eco points badge */
+.eco-points-badge {
+    background-color: var(--bs-success);
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 1rem;
+    font-weight: bold;
+}
+
+/* Custom styling for hero section */
+.hero-section {
+    padding: 6rem 0;
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+    background-size: cover;
+    background-position: center;
+    color: white;
+}
+
+/* Features section styling */
+.feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--bs-info);
+}
+
+/* Impact counter styling */
+.impact-counter {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--bs-info);
+}
+
+/* Dashboard stat cards */
+.stat-card {
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    color: var(--bs-info);
+}
+
+/* Custom styling for reward cards */
+.reward-card {
+    transition: transform 0.3s ease;
+    height: 100%;
+}
+
+.reward-card:hover {
+    transform: translateY(-5px);
+}
+
+.reward-points {
+    background-color: var(--bs-success);
+    color: white;
+    padding: 0.3rem 0.6rem;
+    border-radius: 0.5rem;
+    font-weight: bold;
+}
+
+/* Image upload preview */
+#imagePreview {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 0.5rem;
+    margin-top: 1rem;
+}
+
+/* Admin dashboard cards */
+.admin-card {
+    border-left: 4px solid var(--bs-info);
+}
+
+/* Loading spinner */
+.spinner-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+/* Progress bar styling */
+.eco-progress {
+    height: 1.5rem;
+    border-radius: 1rem;
+}
+
+/* Status badges */
+.status-pending {
+    background-color: var(--bs-warning);
+    color: black;
+}
+
+.status-collected {
+    background-color: var(--bs-success);
+    color: white;
+}
+
+/* Learn page styles */
+.recycling-step {
+    border-left: 3px solid var(--bs-info);
+    padding-left: 1rem;
+    margin-bottom: 2rem;
+}
+
+.step-number {
+    background-color: var(--bs-info);
+    color: white;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+}
+
+/* Footer styling */
+.footer {
+    background-color: rgba(33, 37, 41, 0.95);
+    padding: 2rem 0;
+    margin-top: 3rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 3rem 0;
+    }
+    
+    .impact-counter {
+        font-size: 1.5rem;
+    }
+    
+    .feature-icon {
+        font-size: 2rem;
+    }
+}

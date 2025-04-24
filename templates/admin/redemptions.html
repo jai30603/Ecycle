@@ -1,0 +1,302 @@
+{% extends 'base.html' %}
+
+{% block title %}Redemption Management - Ecycle Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Redemption Management</h1>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-info">
+        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ redemptions|length }}</h3>
+                <p class="text-muted mb-0">Total Redemptions</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ redemptions|selectattr('status', 'equalto', 'Pending')|list|length }}</h3>
+                <p class="text-muted mb-0">Pending</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ redemptions|selectattr('status', 'equalto', 'Processed')|list|length }}</h3>
+                <p class="text-muted mb-0">Processed</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3>{{ redemptions|selectattr('status', 'equalto', 'Delivered')|list|length }}</h3>
+                <p class="text-muted mb-0">Delivered</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Redemption Management Table -->
+<div class="card">
+    <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">All Redemptions</h5>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-light active" id="allRedemptionsBtn">All</button>
+            <button class="btn btn-sm btn-light" id="pendingRedemptionsBtn">Pending</button>
+            <button class="btn btn-sm btn-light" id="processedRedemptionsBtn">Processed</button>
+            <button class="btn btn-sm btn-light" id="deliveredRedemptionsBtn">Delivered</button>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        {% if redemptions %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="redemptionsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Reward</th>
+                            <th>Reward Type</th>
+                            <th>Points Spent</th>
+                            <th>Redemption Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for redemption in redemptions %}
+                            <tr data-status="{{ redemption.status }}">
+                                <td>{{ redemption.id }}</td>
+                                <td>
+                                    <a href="{{ url_for('admin_user_details', user_id=redemption.user_id) }}">
+                                        {{ redemption.user.username }}
+                                    </a>
+                                </td>
+                                <td>{{ redemption.reward.name }}</td>
+                                <td>{{ redemption.reward.reward_type }}</td>
+                                <td>
+                                    <span class="text-danger">-{{ redemption.points_spent }}</span>
+                                </td>
+                                <td>{{ redemption.redeemed_at.strftime('%b %d, %Y') }}</td>
+                                <td>
+                                    <span class="badge {% if redemption.status == 'Pending' %}bg-warning text-dark{% elif redemption.status == 'Processed' %}bg-info{% else %}bg-success{% endif %}">
+                                        {{ redemption.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <form action="{{ url_for('admin_update_redemption', redemption_id=redemption.id) }}" method="POST" class="d-flex gap-2">
+                                        <select name="status" class="form-select form-select-sm">
+                                            <option value="Pending" {% if redemption.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                            <option value="Processed" {% if redemption.status == 'Processed' %}selected{% endif %}>Processed</option>
+                                            <option value="Delivered" {% if redemption.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <p>No redemptions found.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Redemption by Reward Type Chart -->
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Redemptions by Reward Type</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="redemptionsByTypeChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Popular Rewards</h5>
+            </div>
+            <div class="card-body p-0">
+                {% set reward_counts = {} %}
+                {% for redemption in redemptions %}
+                    {% if redemption.reward.name in reward_counts %}
+                        {% set _ = reward_counts.update({redemption.reward.name: reward_counts[redemption.reward.name] + 1}) %}
+                    {% else %}
+                        {% set _ = reward_counts.update({redemption.reward.name: 1}) %}
+                    {% endif %}
+                {% endfor %}
+                
+                <ul class="list-group list-group-flush">
+                    {% for reward, count in reward_counts|dictsort(by='value', reverse=true)[:5] %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ reward }}
+                            <span class="badge bg-info">{{ count }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Points Summary</h5>
+            </div>
+            <div class="card-body">
+                {% set total_points = 0 %}
+                {% for redemption in redemptions %}
+                    {% set total_points = total_points + redemption.points_spent %}
+                {% endfor %}
+                
+                <div class="text-center mb-3">
+                    <h3>{{ total_points }}</h3>
+                    <p class="mb-0 text-muted">Total Points Redeemed</p>
+                </div>
+                
+                <div class="text-center">
+                    {% set average_points = (total_points / redemptions|length)|round if redemptions|length > 0 else 0 %}
+                    <h3>{{ average_points }}</h3>
+                    <p class="mb-0 text-muted">Avg. Points per Redemption</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Redemption filtering functionality
+        const allBtn = document.getElementById('allRedemptionsBtn');
+        const pendingBtn = document.getElementById('pendingRedemptionsBtn');
+        const processedBtn = document.getElementById('processedRedemptionsBtn');
+        const deliveredBtn = document.getElementById('deliveredRedemptionsBtn');
+        const table = document.getElementById('redemptionsTable');
+        const rows = table.querySelectorAll('tbody tr');
+        
+        // Show all redemptions (default)
+        allBtn.addEventListener('click', function() {
+            setActiveButton(allBtn);
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+        });
+        
+        // Show only pending redemptions
+        pendingBtn.addEventListener('click', function() {
+            setActiveButton(pendingBtn);
+            rows.forEach(row => {
+                if (row.getAttribute('data-status') === 'Pending') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // Show only processed redemptions
+        processedBtn.addEventListener('click', function() {
+            setActiveButton(processedBtn);
+            rows.forEach(row => {
+                if (row.getAttribute('data-status') === 'Processed') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // Show only delivered redemptions
+        deliveredBtn.addEventListener('click', function() {
+            setActiveButton(deliveredBtn);
+            rows.forEach(row => {
+                if (row.getAttribute('data-status') === 'Delivered') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // Helper function to set active button
+        function setActiveButton(activeBtn) {
+            [allBtn, pendingBtn, processedBtn, deliveredBtn].forEach(btn => {
+                btn.classList.remove('active');
+            });
+            activeBtn.classList.add('active');
+        }
+        
+        // Generate redemption by type chart
+        const redemptionTypeCtx = document.getElementById('redemptionsByTypeChart').getContext('2d');
+        
+        // Collect data for chart
+        const typeCounts = {
+            'Product': 0,
+            'Coupon': 0,
+            'Discount': 0
+        };
+        
+        {% for redemption in redemptions %}
+            typeCounts["{{ redemption.reward.reward_type }}"]++;
+        {% endfor %}
+        
+        // Convert to arrays for Chart.js
+        const types = Object.keys(typeCounts);
+        const counts = types.map(type => typeCounts[type]);
+        
+        // Create chart
+        new Chart(redemptionTypeCtx, {
+            type: 'pie',
+            data: {
+                labels: types,
+                datasets: [{
+                    label: 'Redemptions by Type',
+                    data: counts,
+                    backgroundColor: [
+                        '#20c997',
+                        '#0dcaf0',
+                        '#6610f2'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((value / total) * 100);
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
