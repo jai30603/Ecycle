@@ -173,42 +173,73 @@ def generate_disposal_certificate(user, ewaste, schedule):
     # Create a PDF buffer to store the PDF
     buffer = BytesIO()
     
-    # Set up the PDF document
+    # Set up the PDF document with smaller margins to fit more content
     doc = SimpleDocTemplate(
         buffer,
         pagesize=letter,
-        rightMargin=72,
-        leftMargin=72,
-        topMargin=72,
-        bottomMargin=72
+        rightMargin=40,
+        leftMargin=40,
+        topMargin=50,
+        bottomMargin=50
     )
     
-    # Styles for the document
+    # Define green colors for the eco-themed certificate
+    eco_dark_green = colors.Color(0.1, 0.5, 0.1)
+    eco_medium_green = colors.Color(0.2, 0.6, 0.2)
+    eco_light_green = colors.Color(0.8, 0.9, 0.8)
+    
+    # Styles for the document with enhanced typography
     styles = getSampleStyleSheet()
     styles.add(ParagraphStyle(
         name='CertificateTitle',
         fontName='Helvetica-Bold',
-        fontSize=16,
+        fontSize=18,
         alignment=1,
-        spaceAfter=12
+        spaceAfter=6,
+        textColor=eco_dark_green
     ))
     styles.add(ParagraphStyle(
         name='CertificateSubTitle',
         fontName='Helvetica-Bold',
-        fontSize=12,
+        fontSize=14,
         alignment=1,
-        spaceAfter=12
+        spaceAfter=6,
+        textColor=eco_medium_green
     ))
     styles.add(ParagraphStyle(
         name='Normal-Center',
         parent=styles['Normal'],
-        alignment=1
+        alignment=1,
+        fontName='Helvetica',
+        fontSize=10
     ))
     styles.add(ParagraphStyle(
         name='Bold-Center',
         parent=styles['BodyText'],
         fontName='Helvetica-Bold',
+        alignment=1,
+        fontSize=11,
+        textColor=eco_dark_green
+    ))
+    styles.add(ParagraphStyle(
+        name='TableHeader',
+        fontName='Helvetica-Bold',
+        fontSize=9,
+        alignment=1,
+        textColor=colors.white
+    ))
+    styles.add(ParagraphStyle(
+        name='TableCell',
+        fontName='Helvetica',
+        fontSize=9,
         alignment=1
+    ))
+    styles.add(ParagraphStyle(
+        name='Footer',
+        fontName='Helvetica-Oblique',
+        fontSize=9,
+        alignment=1,
+        textColor=eco_dark_green
     ))
     
     # Generate a unique certificate number
@@ -224,34 +255,65 @@ def generate_disposal_certificate(user, ewaste, schedule):
     # Build the document content
     elements = []
     
-    # Add logo (if available) or title
+    # Create a header table with logo and title
     try:
-        # Specify the correct path to your logo - use absolute path for better reliability
-        logo_path = os.path.abspath(os.path.join('static', 'img', 'ecycle-logo.png'))
-        current_app.logger.info(f"Looking for logo at: {logo_path}")
+        # Look for the logo at multiple possible locations
+        logo_paths = [
+            os.path.abspath(os.path.join('static', 'img', 'ecycle-logo.png')),
+            os.path.abspath(os.path.join('static', 'img', 'logo.png')),
+            os.path.abspath(os.path.join('static', 'images', 'ecycle-logo.png')),
+            os.path.abspath(os.path.join('static', 'assets', 'ecycle-logo.png')),
+            os.path.abspath(os.path.join('.', 'generated-icon.png'))
+        ]
         
-        if os.path.exists(logo_path):
-            current_app.logger.info(f"Found logo at: {logo_path}")
-            logo = Image(logo_path)
-            logo.drawHeight = 1.5*inch
-            logo.drawWidth = 1.5*inch
-            elements.append(logo)
-        else:
-            # If logo doesn't exist, just use text
-            current_app.logger.warning(f"Logo not found at: {logo_path}")
+        logo_found = False
+        for logo_path in logo_paths:
+            current_app.logger.info(f"Looking for logo at: {logo_path}")
+            if os.path.exists(logo_path):
+                current_app.logger.info(f"Found logo at: {logo_path}")
+                logo = Image(logo_path)
+                logo.drawHeight = 1.2*inch
+                logo.drawWidth = 1.2*inch
+                
+                # Create a header table with logo and title side by side
+                header_data = [[logo, Paragraph('E-WASTE<br/>DISPOSAL CERTIFICATE', styles['CertificateTitle'])]]
+                header_table = Table(header_data, colWidths=[1.2*inch, 4.8*inch])
+                header_table.setStyle(TableStyle([
+                    ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+                    ('ALIGN', (1, 0), (1, 0), 'CENTER'),
+                    ('VALIGN', (0, 0), (1, 0), 'MIDDLE'),
+                ]))
+                elements.append(header_table)
+                logo_found = True
+                break
+        
+        if not logo_found:
+            current_app.logger.warning("No logo found at any of the expected paths")
             elements.append(Paragraph('E-CYCLE', styles['CertificateTitle']))
+            elements.append(Paragraph('E-WASTE DISPOSAL CERTIFICATE', styles['CertificateTitle']))
     except Exception as e:
         current_app.logger.error(f"Error adding logo to certificate: {str(e)}")
         elements.append(Paragraph('E-CYCLE', styles['CertificateTitle']))
+        elements.append(Paragraph('E-WASTE DISPOSAL CERTIFICATE', styles['CertificateTitle']))
     
-    # Certificate Title
-    elements.append(Paragraph('E-WASTE DISPOSAL CERTIFICATE', styles['CertificateTitle']))
-    elements.append(Spacer(1, 0.25*inch))
+    elements.append(Spacer(1, 0.1*inch))
     
-    # Certificate Number and Date
-    elements.append(Paragraph(f'Certificate Number: {certificate_number}', styles['Bold-Center']))
-    elements.append(Paragraph(f'Issued: {issued_date}', styles['Normal-Center']))
-    elements.append(Spacer(1, 0.5*inch))
+    # Certificate Number and Date in a colored box
+    cert_box_data = [
+        [Paragraph(f'Certificate Number: {certificate_number}', styles['Bold-Center'])],
+        [Paragraph(f'Issued: {issued_date}', styles['Normal-Center'])]
+    ]
+    cert_box = Table(cert_box_data, colWidths=[6*inch])
+    cert_box.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (0, 1), eco_light_green),
+        ('BOX', (0, 0), (0, 1), 1, eco_dark_green),
+        ('ALIGN', (0, 0), (0, 1), 'CENTER'),
+        ('VALIGN', (0, 0), (0, 1), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (0, 1), 4),
+        ('BOTTOMPADDING', (0, 0), (0, 1), 4),
+    ]))
+    elements.append(cert_box)
+    elements.append(Spacer(1, 0.15*inch))
     
     # Introduction Text
     intro_text = f'''
@@ -259,8 +321,9 @@ def generate_disposal_certificate(user, ewaste, schedule):
     through the Ecycle platform, contributing to environmental sustainability and proper e-waste management.
     '''
     elements.append(Paragraph(intro_text, styles['Normal-Center']))
-    elements.append(Spacer(1, 0.25*inch))
+    elements.append(Spacer(1, 0.15*inch))
     
+    # Two-column layout for device info and environmental impact
     # Device Information
     device_data = [
         ['DEVICE INFORMATION', ''],
@@ -271,79 +334,128 @@ def generate_disposal_certificate(user, ewaste, schedule):
         ['Pickup Reference:', f'#{schedule.id}']
     ]
     
-    device_table = Table(device_data, colWidths=[2*inch, 3*inch])
-    device_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (1, 0), colors.green),
-        ('TEXTCOLOR', (0, 0), (1, 0), colors.white),
-        ('ALIGN', (0, 0), (1, 0), 'CENTER'),
-        ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (1, 0), 12),
-        ('BOTTOMPADDING', (0, 0), (1, 0), 8),
-        ('BACKGROUND', (0, 1), (1, 5), colors.white),
-        ('GRID', (0, 0), (1, 5), 1, colors.black),
-        ('VALIGN', (0, 0), (1, 5), 'MIDDLE'),
-    ]))
-    elements.append(device_table)
-    elements.append(Spacer(1, 0.25*inch))
-    
-    # Environmental Impact
+    # Environmental Impact Summary
     impact_data = [
         ['ENVIRONMENTAL IMPACT', ''],
         ['Carbon Footprint Saved:', f'{carbon_saved:.1f} kg CO₂e'],
         ['Eco Points Earned:', f'{ewaste.eco_points} points'],
-        ['Recycling Method:', 'Responsible Recycling & Resource Recovery']
+        ['Recycling Method:', 'Responsible Recycling']
     ]
     
-    impact_table = Table(impact_data, colWidths=[2*inch, 3*inch])
-    impact_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (1, 0), colors.blue),
+    # Create tables with matching styles
+    device_table = Table(device_data, colWidths=[1.5*inch, 1.5*inch])
+    device_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (1, 0), eco_dark_green),
         ('TEXTCOLOR', (0, 0), (1, 0), colors.white),
         ('ALIGN', (0, 0), (1, 0), 'CENTER'),
         ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (1, 0), 12),
-        ('BOTTOMPADDING', (0, 0), (1, 0), 8),
-        ('BACKGROUND', (0, 1), (1, 3), colors.white),
-        ('GRID', (0, 0), (1, 3), 1, colors.black),
-        ('VALIGN', (0, 0), (1, 3), 'MIDDLE'),
+        ('FONTSIZE', (0, 0), (1, 0), 10),
+        ('SPAN', (0, 0), (1, 0)),
+        ('BOTTOMPADDING', (0, 0), (1, 0), 6),
+        ('BACKGROUND', (0, 1), (1, len(device_data)-1), colors.white),
+        ('GRID', (0, 0), (1, len(device_data)-1), 0.5, eco_medium_green),
+        ('VALIGN', (0, 0), (1, len(device_data)-1), 'MIDDLE'),
+        ('FONTSIZE', (0, 1), (1, len(device_data)-1), 8),
     ]))
-    elements.append(impact_table)
-    elements.append(Spacer(1, 0.25*inch))
     
-    # Certification Statement
+    impact_table = Table(impact_data, colWidths=[1.5*inch, 1.5*inch])
+    impact_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (1, 0), eco_medium_green),
+        ('TEXTCOLOR', (0, 0), (1, 0), colors.white),
+        ('ALIGN', (0, 0), (1, 0), 'CENTER'),
+        ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (1, 0), 10),
+        ('SPAN', (0, 0), (1, 0)),
+        ('BOTTOMPADDING', (0, 0), (1, 0), 6),
+        ('BACKGROUND', (0, 1), (1, len(impact_data)-1), colors.white),
+        ('GRID', (0, 0), (1, len(impact_data)-1), 0.5, eco_medium_green),
+        ('VALIGN', (0, 0), (1, len(impact_data)-1), 'MIDDLE'),
+        ('FONTSIZE', (0, 1), (1, len(impact_data)-1), 8),
+    ]))
+    
+    # Create a table to hold both tables side by side
+    info_table_data = [[device_table, impact_table]]
+    info_table = Table(info_table_data, colWidths=[3*inch, 3*inch])
+    info_table.setStyle(TableStyle([
+        ('ALIGN', (0, 0), (1, 0), 'CENTER'),
+        ('VALIGN', (0, 0), (1, 0), 'TOP'),
+    ]))
+    
+    elements.append(info_table)
+    elements.append(Spacer(1, 0.15*inch))
+    
+    # Create a box for the certification statement
     certification_text = '''
-    <b>CERTIFICATION STATEMENT</b><br/><br/>
+    <b>CERTIFICATION STATEMENT</b><br/>
     This is to certify that the above-mentioned electronic waste item was collected and 
     processed in accordance with responsible e-waste management practices and applicable 
     environmental regulations. All data storage devices have been securely wiped or physically 
     destroyed as appropriate.
     '''
-    elements.append(Paragraph(certification_text, styles['Normal-Center']))
-    elements.append(Spacer(1, 0.5*inch))
+    cert_statement = Paragraph(certification_text, styles['Normal-Center'])
+    cert_frame = Table([[cert_statement]], colWidths=[6*inch])
+    cert_frame.setStyle(TableStyle([
+        ('BOX', (0, 0), (0, 0), 1, eco_dark_green),
+        ('BACKGROUND', (0, 0), (0, 0), eco_light_green),
+        ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+        ('VALIGN', (0, 0), (0, 0), 'MIDDLE'),
+        ('TOPPADDING', (0, 0), (0, 0), 10),
+        ('BOTTOMPADDING', (0, 0), (0, 0), 10),
+        ('LEFTPADDING', (0, 0), (0, 0), 10),
+        ('RIGHTPADDING', (0, 0), (0, 0), 10),
+    ]))
+    elements.append(cert_frame)
+    elements.append(Spacer(1, 0.15*inch))
     
     # Signature
     signature_data = [
-        ['', ''],
         ['_______________________', '_______________________'],
         ['Authorized Signature', 'Date'],
         ['Ecycle Recycling Officer', '']
     ]
     
-    signature_table = Table(signature_data, colWidths=[2.5*inch, 2.5*inch])
+    signature_table = Table(signature_data, colWidths=[3*inch, 3*inch])
     signature_table.setStyle(TableStyle([
-        ('ALIGN', (0, 0), (1, 3), 'CENTER'),
-        ('VALIGN', (0, 0), (1, 3), 'MIDDLE'),
+        ('ALIGN', (0, 0), (1, 2), 'CENTER'),
+        ('VALIGN', (0, 0), (1, 2), 'MIDDLE'),
+        ('FONTSIZE', (0, 1), (1, 2), 9),
+        ('TEXTCOLOR', (0, 1), (1, 2), eco_dark_green),
     ]))
     elements.append(signature_table)
-    elements.append(Spacer(1, 0.25*inch))
+    elements.append(Spacer(1, 0.15*inch))
     
-    # Footer
+    # Footer with eco message
     footer_text = '''
     <i>Thank you for contributing to a sustainable future by responsibly recycling your electronic waste.</i>
     '''
-    elements.append(Paragraph(footer_text, styles['Normal-Center']))
+    elements.append(Paragraph(footer_text, styles['Footer']))
     
-    # Build the PDF
-    doc.build(elements)
+    # Build the PDF with a green-themed border
+    # Create a custom canvas to add the border
+    class BorderedPage(canvas.Canvas):
+        def __init__(self, *args, **kwargs):
+            canvas.Canvas.__init__(self, *args, **kwargs)
+            
+        def showPage(self):
+            self.saveState()
+            # Draw a green border around the page
+            self.setStrokeColor(eco_dark_green)
+            self.setLineWidth(2)
+            width, height = letter
+            self.rect(20, 20, width - 40, height - 40)
+            
+            # Add a subtle eco leaf watermark
+            self.setFillColor(eco_light_green)
+            self.setFont("Helvetica", 8)
+            self.drawRightString(width - 30, 30, "Ecycle - Sustainable E-Waste Management")
+            
+            self.restoreState()
+            canvas.Canvas.showPage(self)
+    
+    # Build the PDF with our custom canvas
+    buffer.seek(0)  # Reset buffer
+    custom_canvas = BorderedPage(buffer)
+    doc.build(elements, canvasmaker=lambda *args, **kwargs: BorderedPage(*args, **kwargs))
     
     # Reset buffer position to the beginning
     buffer.seek(0)
