@@ -763,11 +763,37 @@ def admin_pickups():
     collected_count = Schedule.query.filter_by(status='Collected').count()
     today_count = Schedule.query.filter(db.func.date(Schedule.pickup_date) == datetime.now().date()).count()
     
+    # Calculate carbon footprint and eco points totals
+    total_eco_points = db.session.query(db.func.sum(Ewaste.eco_points)).join(Schedule).scalar() or 0
+    total_carbon = 0
+    for pickup in pickups:
+        total_carbon += calculate_carbon_footprint(pickup.ewaste.ewaste_type)
+    
+    # Get upcoming pickups
+    upcoming_pickups = Schedule.query.filter(
+        Schedule.status == 'Pending',
+        Schedule.pickup_date > datetime.now()
+    ).order_by(Schedule.pickup_date).limit(5).all()
+    
+    # Prepare stats for template
+    stats = {
+        'pending_count': pending_count,
+        'collected_count': collected_count,
+        'today_count': today_count,
+        'total_eco_points': total_eco_points,
+        'total_carbon': total_carbon
+    }
+    
+    # Add pagination variables
+    page = 1  # Default to page 1
+    total_pages = 1  # Default to 1 page
+    
     return render_template('admin/pickups.html', 
                           pickups=pickups,
-                          pending_count=pending_count,
-                          collected_count=collected_count,
-                          today_count=today_count,
+                          stats=stats,
+                          page=page,
+                          total_pages=total_pages,
+                          upcoming_pickups=upcoming_pickups,
                           today=datetime.now().date())
 
 # Admin update pickup status

@@ -93,19 +93,21 @@
                                             </button>
                                             <ul class="dropdown-menu" aria-labelledby="actionDropdown{{ pickup.id }}">
                                                 <li>
-                                                    <a href="{{ url_for('update_pickup_status', pickup_id=pickup.id, status='Collected') }}" class="dropdown-item">
-                                                        Mark as Collected
-                                                    </a>
+                                                    <form action="{{ url_for('admin_update_pickup', pickup_id=pickup.id) }}" method="POST" class="d-inline">
+                                                        <input type="hidden" name="status" value="Collected">
+                                                        <button type="submit" class="dropdown-item">Mark as Collected</button>
+                                                    </form>
                                                 </li>
                                                 <li>
-                                                    <a href="{{ url_for('update_pickup_status', pickup_id=pickup.id, status='Pending') }}" class="dropdown-item">
-                                                        Mark as Pending
-                                                    </a>
+                                                    <form action="{{ url_for('admin_update_pickup', pickup_id=pickup.id) }}" method="POST" class="d-inline">
+                                                        <input type="hidden" name="status" value="Pending">
+                                                        <button type="submit" class="dropdown-item">Mark as Pending</button>
+                                                    </form>
                                                 </li>
                                                 <li><hr class="dropdown-divider"></li>
                                                 <li>
-                                                    <a href="{{ url_for('pickup_details', pickup_id=pickup.id) }}" class="dropdown-item">
-                                                        View Details
+                                                    <a href="{{ url_for('admin_user_details', user_id=pickup.user_id) }}" class="dropdown-item">
+                                                        View User Details
                                                     </a>
                                                 </li>
                                             </ul>
@@ -205,7 +207,10 @@
                                         <br>
                                         <small class="text-muted">{{ pickup.pickup_date.strftime('%Y-%m-%d %H:%M') }}</small>
                                     </div>
-                                    <a href="{{ url_for('pickup_details', pickup_id=pickup.id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                                    <form action="{{ url_for('admin_update_pickup', pickup_id=pickup.id) }}" method="POST" class="d-inline">
+                                        <input type="hidden" name="status" value="Collected">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary">Mark Collected</button>
+                                    </form>
                                 </li>
                             {% endfor %}
                         </ul>
