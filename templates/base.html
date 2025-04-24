@@ -49,6 +49,9 @@
                         <a class="nav-link" href="{{ url_for('history') }}">History</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('certificates') }}">Certificates</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('rewards') }}">Rewards</a>
                     </li>
                     {% endif %}
@@ -82,6 +85,7 @@
                         <ul class="dropdown-menu" aria-labelledby="userDropdown">
                             <li><a class="dropdown-item" href="{{ url_for('dashboard') }}">Dashboard</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('history') }}">My Pickups</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('certificates') }}">My Certificates</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('rewards') }}">My Rewards</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>

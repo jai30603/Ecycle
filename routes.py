@@ -1013,6 +1013,34 @@ def create_admin():
         db.session.commit()
         app.logger.info('Admin user created')
         
+# View all certificates page
+@app.route('/certificates')
+def certificates():
+    """
+    Display all certificates for the logged-in user
+    """
+    if 'user_id' not in session:
+        flash('Please login to view your certificates.', 'warning')
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    
+    # Get all completed pickups for the user
+    certificates = Schedule.query.filter_by(
+        user_id=user_id, 
+        status='Collected'
+    ).order_by(Schedule.updated_at.desc()).all()
+    
+    # Calculate carbon footprint for each pickup
+    carbon_footprints = {}
+    for cert in certificates:
+        ewaste = Ewaste.query.get(cert.ewaste_id)
+        carbon_footprints[cert.id] = calculate_carbon_footprint(ewaste.ewaste_type)
+    
+    return render_template('certificates.html', 
+                           certificates=certificates,
+                           carbon_footprints=carbon_footprints)
+
 # Route to download disposal certificate
 @app.route('/certificate/<int:pickup_id>')
 def download_certificate(pickup_id):

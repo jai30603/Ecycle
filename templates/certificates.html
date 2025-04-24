@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}My Certificates - Ecycle{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-3">My E-Waste Disposal Certificates</h1>
+            <p class="lead">Download your official disposal certificates for completed pickups</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    {% if certificates %}
+        <div class="row">
+            {% for cert in certificates %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Certificate #{{ cert.id }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <i class="fas fa-award text-success fa-3x mb-3"></i>
+                                <h5 class="card-title">{{ cert.ewaste.ewaste_type }}</h5>
+                                <p class="card-text text-muted">
+                                    Issued on {{ cert.updated_at.strftime('%b %d, %Y') }}
+                                </p>
+                            </div>
+                            <div class="mb-3">
+                                <span class="badge bg-success mb-2">Eco Points: +{{ cert.ewaste.eco_points }}</span>
+                                <p class="mb-1"><strong>Condition:</strong> {{ cert.ewaste.condition }}</p>
+                                {% if cert.ewaste.model %}
+                                    <p class="mb-1"><strong>Model:</strong> {{ cert.ewaste.model }}</p>
+                                {% endif %}
+                                <p><strong>Carbon Saved:</strong> {{ "{:.1f}".format(carbon_footprints[cert.id]|default(0)) }} kg CO₂e</p>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light">
+                            <a href="{{ url_for('download_certificate', pickup_id=cert.id) }}" class="btn btn-success w-100">
+                                <i class="fas fa-download me-2"></i> Download Certificate
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-certificate fa-3x mb-3 text-muted"></i>
+                <h4 class="mb-3">No Certificates Available</h4>
+                <p class="mb-4">You'll receive certificates once your e-waste pickups have been collected.</p>
+                <a href="{{ url_for('schedule') }}" class="btn btn-primary">
+                    <i class="fas fa-calendar-plus me-1"></i> Schedule Pickup
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Information Panel -->
+    <div class="card mt-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">About E-Waste Disposal Certificates</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>What are disposal certificates?</h5>
+                    <p>
+                        E-waste disposal certificates are official documents that provide proof that your electronic waste has been properly collected and will be recycled in an environmentally responsible manner.
+                    </p>
+                    <p>
+                        These certificates include details about the e-waste item, the environmental impact of recycling, and can be used for record-keeping or compliance purposes.
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Benefits of your certificates</h5>
+                    <ul>
+                        <li>Official proof of responsible e-waste disposal</li>
+                        <li>Documentation of your environmental contribution</li>
+                        <li>Record of carbon footprint reduction</li>
+                        <li>Evidence for corporate sustainability reporting</li>
+                        <li>Verification for regulatory compliance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
