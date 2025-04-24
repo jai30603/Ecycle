@@ -216,3 +216,25 @@ class BulkEwasteItem(db.Model):
             'total_eco_points': self.eco_points_per_unit * self.quantity,
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M')
         }
+
+class Message(db.Model):
+    """Model for E-Talk community messages"""
+    __tablename__ = 'messages'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationship with user
+    user = db.relationship('User', backref='messages', lazy=True)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'username': self.user.username,
+            'content': self.content,
+            'created_at': self.created_at.strftime('%Y-%m-%d %H:%M'),
+            'timestamp': int(self.created_at.timestamp())
+        }

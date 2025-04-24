@@ -274,3 +274,11 @@ class BulkPickupForm(FlaskForm):
     request_tax_receipt = BooleanField('Request Tax-deductible Donation Receipt')
     
     submit = SubmitField('Submit Bulk Pickup Request')
+    
+class MessageForm(FlaskForm):
+    """Form for posting messages to the E-Talk community board"""
+    content = TextAreaField('Message', validators=[
+        DataRequired(), 
+        Length(min=1, max=500, message="Message must be between 1 and 500 characters.")
+    ])
+    submit = SubmitField('Post')
