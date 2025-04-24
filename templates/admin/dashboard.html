@@ -4,397 +4,430 @@
 
 {% block content %}
 <div class="container-fluid py-4 admin-dashboard">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="mb-3">Admin Dashboard</h1>
-            <p class="lead">Manage e-waste pickups, users, and rewards</p>
-        </div>
-        <div class="col-md-4 text-md-end">
-            <a href="{{ url_for('logout') }}" class="btn btn-outline-light">
-                <i class="fas fa-sign-out-alt me-2"></i> Logout
-            </a>
-        </div>
-    </div>
-    
-    <!-- Quick Stats -->
-    <div class="row mb-4">
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card text-center h-100 border-left-primary shadow">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-auto">
-                            <i class="fas fa-users fa-2x text-primary"></i>
-                        </div>
-                        <div class="col">
-                            <h3 class="display-5 mb-0 fw-bold">{{ total_users }}</h3>
-                            <p class="mt-2 mb-0">Total Users</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card text-center h-100 border-left-warning shadow">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-auto">
-                            <i class="fas fa-clock fa-2x text-warning"></i>
-                        </div>
-                        <div class="col">
-                            <h3 class="display-5 mb-0 fw-bold">{{ pending_pickups }}</h3>
-                            <p class="mt-2 mb-0">Pending Pickups</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card text-center h-100 border-left-info shadow">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-auto">
-                            <i class="fas fa-laptop fa-2x text-info"></i>
-                        </div>
-                        <div class="col">
-                            <h3 class="display-5 mb-0 fw-bold">{{ total_ewaste }}</h3>
-                            <p class="mt-2 mb-0">E-Waste Items</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3 col-sm-6 mb-3">
-            <div class="card text-center h-100 border-left-success shadow">
-                <div class="card-body">
-                    <div class="row align-items-center">
-                        <div class="col-auto">
-                            <i class="fas fa-check-circle fa-2x text-success"></i>
-                        </div>
-                        <div class="col">
-                            <h3 class="display-5 mb-0 fw-bold">{{ completed_pickups }}</h3>
-                            <p class="mt-2 mb-0">Completed Pickups</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Analytics Graphs Section -->
-    <div class="row mb-4">
-        <!-- Monthly Pickups Chart -->
-        <div class="col-lg-8 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-chart-line me-2 text-primary"></i>
-                        Monthly Activity
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="monthlyActivityChart" height="300"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Status Distribution -->
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-chart-pie me-2 text-info"></i>
-                        Pickup Status Distribution
-                    </h5>
-                </div>
-                <div class="card-body d-flex align-items-center justify-content-center">
-                    <canvas id="statusDonutChart" height="260"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="row mb-4">
-        <!-- Top E-Waste Types -->
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-laptop me-2 text-success"></i>
-                        Top E-Waste Types by Eco Points
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="ewasteBarChart" height="300"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Top Users -->
-        <div class="col-lg-6 mb-4">
-            <div class="card shadow h-100">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-trophy me-2 text-warning"></i>
-                        Top Users by Eco Points
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <canvas id="topUsersChart" height="300"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Admin Navigation Tabs -->
-    <div class="card shadow mb-4">
-        <div class="card-header bg-light">
-            <ul class="nav nav-tabs card-header-tabs" id="adminTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
-                        <i class="fas fa-th-large me-1"></i> Overview
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="pickups-tab" data-bs-toggle="tab" data-bs-target="#pickups" type="button" role="tab" aria-controls="pickups" aria-selected="false">
-                        <i class="fas fa-truck me-1"></i> Pickups
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="false">
-                        <i class="fas fa-users me-1"></i> Users
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="rewards-tab" data-bs-toggle="tab" data-bs-target="#rewards" type="button" role="tab" aria-controls="rewards" aria-selected="false">
-                        <i class="fas fa-gift me-1"></i> Rewards
-                    </button>
-                </li>
-            </ul>
-        </div>
+    <!-- Header Section with Border -->
+    <div class="card border border-secondary rounded shadow-sm mb-4">
         <div class="card-body">
-            <div class="tab-content" id="adminTabsContent">
-                <!-- Overview Tab -->
-                <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-4 shadow-sm">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0 fw-bold">
-                                        <i class="fas fa-calendar-check me-2 text-primary"></i>
-                                        Recent Pickups
-                                    </h5>
+            <div class="row">
+                <div class="col-md-8">
+                    <h1 class="mb-2">Admin Dashboard</h1>
+                    <p class="lead mb-0">Manage e-waste pickups, users, and rewards</p>
+                </div>
+                <div class="col-md-4 text-md-end d-flex align-items-center justify-content-end">
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline-light">
+                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Stats Section with Border -->
+    <div class="card border border-secondary rounded shadow mb-4">
+        <div class="card-header bg-dark">
+            <h4 class="mb-0">
+                <i class="fas fa-tachometer-alt me-2 text-primary"></i>
+                Dashboard Statistics
+            </h4>
+        </div>
+        <div class="card-body py-4">
+            <div class="row">
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="card text-center h-100 shadow border border-primary">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <i class="fas fa-users fa-2x text-primary"></i>
                                 </div>
-                                <div class="card-body">
-                                    {% if upcoming_pickups %}
-                                        <div class="table-responsive">
-                                            <table class="table table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th>User</th>
-                                                        <th>E-Waste Type</th>
-                                                        <th>Date</th>
-                                                        <th>Status</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {% for pickup in upcoming_pickups %}
-                                                        <tr>
-                                                            <td>{{ pickup.user.username }}</td>
-                                                            <td>{{ pickup.ewaste.ewaste_type }}</td>
-                                                            <td>{{ pickup.pickup_date.strftime('%Y-%m-%d') }}</td>
-                                                            <td>
-                                                                {% if pickup.status == 'Pending' %}
-                                                                    <span class="badge bg-warning">{{ pickup.status }}</span>
-                                                                {% elif pickup.status == 'Collected' %}
-                                                                    <span class="badge bg-success">{{ pickup.status }}</span>
-                                                                {% else %}
-                                                                    <span class="badge bg-secondary">{{ pickup.status }}</span>
-                                                                {% endif %}
-                                                            </td>
-                                                        </tr>
-                                                    {% endfor %}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <div class="text-center mt-3">
-                                            <a href="{{ url_for('admin_pickups') }}" class="btn btn-sm btn-primary">View All Pickups</a>
-                                        </div>
-                                    {% else %}
-                                        <p class="text-center py-3">No recent pickups.</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card mb-4 shadow-sm">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0 fw-bold">
-                                        <i class="fas fa-user-plus me-2 text-info"></i>
-                                        Recent Users
-                                    </h5>
-                                </div>
-                                <div class="card-body">
-                                    {% if recent_users %}
-                                        <div class="table-responsive">
-                                            <table class="table table-hover">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Username</th>
-                                                        <th>Email</th>
-                                                        <th>Eco Points</th>
-                                                        <th>Joined</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {% for user in recent_users %}
-                                                        <tr>
-                                                            <td>{{ user.username }}</td>
-                                                            <td>{{ user.email }}</td>
-                                                            <td>{{ user.eco_points }}</td>
-                                                            <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
-                                                        </tr>
-                                                    {% endfor %}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    {% else %}
-                                        <p class="text-center py-3">No recent users.</p>
-                                    {% endif %}
+                                <div class="col">
+                                    <h3 class="display-5 mb-0 fw-bold">{{ total_users }}</h3>
+                                    <p class="mt-2 mb-0">Total Users</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0 fw-bold">
-                                        <i class="fas fa-recycle me-2 text-success"></i>
-                                        E-Waste Collection Statistics
-                                    </h5>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="card text-center h-100 shadow border border-warning">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <i class="fas fa-clock fa-2x text-warning"></i>
                                 </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <h6 class="fw-bold mb-3">Most Common E-Waste Types</h6>
-                                            <div class="table-responsive">
-                                                <table class="table table-sm">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>E-Waste Type</th>
-                                                            <th>Count</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {% for item in ewaste_stats %}
-                                                            <tr>
-                                                                <td>{{ item.type }}</td>
-                                                                <td>{{ item.count }}</td>
-                                                            </tr>
-                                                        {% endfor %}
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                <div class="col">
+                                    <h3 class="display-5 mb-0 fw-bold">{{ pending_pickups }}</h3>
+                                    <p class="mt-2 mb-0">Pending Pickups</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="card text-center h-100 shadow border border-info">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <i class="fas fa-laptop fa-2x text-info"></i>
+                                </div>
+                                <div class="col">
+                                    <h3 class="display-5 mb-0 fw-bold">{{ total_ewaste }}</h3>
+                                    <p class="mt-2 mb-0">E-Waste Items</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="card text-center h-100 shadow border border-success">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-auto">
+                                    <i class="fas fa-check-circle fa-2x text-success"></i>
+                                </div>
+                                <div class="col">
+                                    <h3 class="display-5 mb-0 fw-bold">{{ completed_pickups }}</h3>
+                                    <p class="mt-2 mb-0">Completed Pickups</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Analytics Graphs Section with Border -->
+    <div class="card border border-secondary rounded shadow mb-4">
+        <div class="card-header bg-dark">
+            <h4 class="mb-0">
+                <i class="fas fa-chart-bar me-2 text-info"></i>
+                Analytics & Insights
+            </h4>
+        </div>
+        <div class="card-body py-4">
+            <!-- Monthly Activity and Status Distribution -->
+            <div class="row mb-4">
+                <!-- Monthly Pickups Chart -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card shadow h-100 border border-primary">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="fas fa-chart-line me-2 text-primary"></i>
+                                Monthly Activity
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="monthlyActivityChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Status Distribution -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow h-100 border border-info">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="fas fa-chart-pie me-2 text-info"></i>
+                                Pickup Status Distribution
+                            </h5>
+                        </div>
+                        <div class="card-body d-flex align-items-center justify-content-center">
+                            <canvas id="statusDonutChart" height="260"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- E-Waste Types and Top Users -->
+            <div class="row">
+                <!-- Top E-Waste Types -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow h-100 border border-success">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="fas fa-laptop me-2 text-success"></i>
+                                Top E-Waste Types by Eco Points
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="ewasteBarChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Top Users -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card shadow h-100 border border-warning">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0 fw-bold">
+                                <i class="fas fa-trophy me-2 text-warning"></i>
+                                Top Users by Eco Points
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="topUsersChart" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Admin Navigation Tabs Section with Border -->
+    <div class="card border border-secondary rounded shadow mb-4">
+        <div class="card-header bg-dark">
+            <h4 class="mb-0">
+                <i class="fas fa-tasks me-2 text-warning"></i>
+                Management & Navigation
+            </h4>
+        </div>
+        <div class="card-body p-0">
+            <div class="card border-0 mb-0">
+                <div class="card-header bg-light">
+                    <ul class="nav nav-tabs card-header-tabs" id="adminTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab" aria-controls="overview" aria-selected="true">
+                                <i class="fas fa-th-large me-1"></i> Overview
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="pickups-tab" data-bs-toggle="tab" data-bs-target="#pickups" type="button" role="tab" aria-controls="pickups" aria-selected="false">
+                                <i class="fas fa-truck me-1"></i> Pickups
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="false">
+                                <i class="fas fa-users me-1"></i> Users
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="rewards-tab" data-bs-toggle="tab" data-bs-target="#rewards" type="button" role="tab" aria-controls="rewards" aria-selected="false">
+                                <i class="fas fa-gift me-1"></i> Rewards
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="adminTabsContent">
+                        <!-- Overview Tab -->
+                        <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card mb-4 shadow-sm border border-primary">
+                                        <div class="card-header bg-light">
+                                            <h5 class="mb-0 fw-bold">
+                                                <i class="fas fa-calendar-check me-2 text-primary"></i>
+                                                Recent Pickups
+                                            </h5>
                                         </div>
-                                        <div class="col-md-6">
-                                            <h6 class="fw-bold mb-3">Total Eco Points: {{ total_eco_points }}</h6>
-                                            <div class="progress mb-4" style="height: 25px;">
-                                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%">
-                                                    {{ total_eco_points }} Points
+                                        <div class="card-body">
+                                            {% if upcoming_pickups %}
+                                                <div class="table-responsive">
+                                                    <table class="table table-hover">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>User</th>
+                                                                <th>E-Waste Type</th>
+                                                                <th>Date</th>
+                                                                <th>Status</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for pickup in upcoming_pickups %}
+                                                                <tr>
+                                                                    <td>{{ pickup.user.username }}</td>
+                                                                    <td>{{ pickup.ewaste.ewaste_type }}</td>
+                                                                    <td>{{ pickup.pickup_date.strftime('%Y-%m-%d') }}</td>
+                                                                    <td>
+                                                                        {% if pickup.status == 'Pending' %}
+                                                                            <span class="badge bg-warning">{{ pickup.status }}</span>
+                                                                        {% elif pickup.status == 'Collected' %}
+                                                                            <span class="badge bg-success">{{ pickup.status }}</span>
+                                                                        {% else %}
+                                                                            <span class="badge bg-secondary">{{ pickup.status }}</span>
+                                                                        {% endif %}
+                                                                    </td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <div class="text-center mt-3">
+                                                    <a href="{{ url_for('admin_pickups') }}" class="btn btn-sm btn-primary">View All Pickups</a>
+                                                </div>
+                                            {% else %}
+                                                <p class="text-center py-3">No recent pickups.</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card mb-4 shadow-sm border border-info">
+                                        <div class="card-header bg-light">
+                                            <h5 class="mb-0 fw-bold">
+                                                <i class="fas fa-user-plus me-2 text-info"></i>
+                                                Recent Users
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            {% if recent_users %}
+                                                <div class="table-responsive">
+                                                    <table class="table table-hover">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Username</th>
+                                                                <th>Email</th>
+                                                                <th>Eco Points</th>
+                                                                <th>Joined</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for user in recent_users %}
+                                                                <tr>
+                                                                    <td>{{ user.username }}</td>
+                                                                    <td>{{ user.email }}</td>
+                                                                    <td>{{ user.eco_points }}</td>
+                                                                    <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            {% else %}
+                                                <p class="text-center py-3">No recent users.</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="card shadow-sm border border-success">
+                                        <div class="card-header bg-light">
+                                            <h5 class="mb-0 fw-bold">
+                                                <i class="fas fa-recycle me-2 text-success"></i>
+                                                E-Waste Collection Statistics
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h6 class="fw-bold mb-3">Most Common E-Waste Types</h6>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>E-Waste Type</th>
+                                                                    <th>Count</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                {% for item in ewaste_stats %}
+                                                                    <tr>
+                                                                        <td>{{ item.type }}</td>
+                                                                        <td>{{ item.count }}</td>
+                                                                    </tr>
+                                                                {% endfor %}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6 class="fw-bold mb-3">Total Eco Points: {{ total_eco_points }}</h6>
+                                                    <div class="progress mb-4" style="height: 25px;">
+                                                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%">
+                                                            {{ total_eco_points }} Points
+                                                        </div>
+                                                    </div>
+                                                    <p class="small text-muted">
+                                                        <i class="fas fa-leaf me-1"></i> 
+                                                        Each eco point represents a significant contribution to environmental sustainability.
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <p class="small text-muted">
-                                                <i class="fas fa-leaf me-1"></i> 
-                                                Each eco point represents a significant contribution to environmental sustainability.
-                                            </p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                
-                <!-- Quick access to other tabs -->
-                <div class="tab-pane fade" id="pickups" role="tabpanel" aria-labelledby="pickups-tab">
-                    <div class="text-center py-4">
-                        <div class="mb-4">
-                            <i class="fas fa-truck fa-3x text-primary mb-3"></i>
-                            <h5 class="fw-bold">Manage E-Waste Pickups</h5>
-                            <p>View and update the status of scheduled pickups</p>
+                        
+                        <!-- Quick access to other tabs -->
+                        <div class="tab-pane fade" id="pickups" role="tabpanel" aria-labelledby="pickups-tab">
+                            <div class="text-center py-4">
+                                <div class="mb-4">
+                                    <i class="fas fa-truck fa-3x text-primary mb-3"></i>
+                                    <h5 class="fw-bold">Manage E-Waste Pickups</h5>
+                                    <p>View and update the status of scheduled pickups</p>
+                                </div>
+                                <a href="{{ url_for('admin_pickups') }}" class="btn btn-primary">
+                                    <i class="fas fa-arrow-right me-2"></i>
+                                    Go to Pickups Management
+                                </a>
+                            </div>
                         </div>
-                        <a href="{{ url_for('admin_pickups') }}" class="btn btn-primary">
-                            <i class="fas fa-arrow-right me-2"></i>
-                            Go to Pickups Management
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
-                    <div class="text-center py-4">
-                        <div class="mb-4">
-                            <i class="fas fa-users fa-3x text-info mb-3"></i>
-                            <h5 class="fw-bold">Manage Users</h5>
-                            <p>View and manage user accounts and their activities</p>
+                        
+                        <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
+                            <div class="text-center py-4">
+                                <div class="mb-4">
+                                    <i class="fas fa-users fa-3x text-info mb-3"></i>
+                                    <h5 class="fw-bold">Manage Users</h5>
+                                    <p>View and manage user accounts and their activities</p>
+                                </div>
+                                <a href="{{ url_for('admin_users') }}" class="btn btn-info text-white">
+                                    <i class="fas fa-arrow-right me-2"></i>
+                                    Go to User Management
+                                </a>
+                            </div>
                         </div>
-                        <a href="{{ url_for('admin_users') }}" class="btn btn-info text-white">
-                            <i class="fas fa-arrow-right me-2"></i>
-                            Go to User Management
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="tab-pane fade" id="rewards" role="tabpanel" aria-labelledby="rewards-tab">
-                    <div class="text-center py-4">
-                        <div class="mb-4">
-                            <i class="fas fa-gift fa-3x text-warning mb-3"></i>
-                            <h5 class="fw-bold">Manage Rewards</h5>
-                            <p>Add, edit, or remove rewards that users can redeem with their eco-points</p>
+                        
+                        <div class="tab-pane fade" id="rewards" role="tabpanel" aria-labelledby="rewards-tab">
+                            <div class="text-center py-4">
+                                <div class="mb-4">
+                                    <i class="fas fa-gift fa-3x text-warning mb-3"></i>
+                                    <h5 class="fw-bold">Manage Rewards</h5>
+                                    <p>Add, edit, or remove rewards that users can redeem with their eco-points</p>
+                                </div>
+                                <a href="{{ url_for('admin_rewards') }}" class="btn btn-warning">
+                                    <i class="fas fa-arrow-right me-2"></i>
+                                    Go to Rewards Management
+                                </a>
+                            </div>
                         </div>
-                        <a href="{{ url_for('admin_rewards') }}" class="btn btn-warning">
-                            <i class="fas fa-arrow-right me-2"></i>
-                            Go to Rewards Management
-                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- Quick Actions -->
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card shadow">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-bolt me-2 text-warning"></i>
-                        Quick Actions
-                    </h5>
+    <!-- Quick Actions Section with Border -->
+    <div class="card border border-secondary rounded shadow mb-4">
+        <div class="card-header bg-dark">
+            <h4 class="mb-0">
+                <i class="fas fa-bolt me-2 text-warning"></i>
+                Quick Actions
+            </h4>
+        </div>
+        <div class="card-body py-4">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <a href="{{ url_for('admin_pickups') }}" class="btn btn-outline-primary d-block border-2">
+                        <i class="fas fa-truck fa-fw me-2"></i> Manage Pickups
+                    </a>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <a href="{{ url_for('admin_pickups') }}" class="btn btn-outline-primary d-block">
-                                <i class="fas fa-truck fa-fw me-2"></i> Manage Pickups
-                            </a>
-                        </div>
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <a href="{{ url_for('admin_rewards') }}" class="btn btn-outline-warning d-block">
-                                <i class="fas fa-gift fa-fw me-2"></i> Manage Rewards
-                            </a>
-                        </div>
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-info d-block">
-                                <i class="fas fa-users fa-fw me-2"></i> Manage Users
-                            </a>
-                        </div>
-                        <div class="col-lg-3 col-md-6 mb-3">
-                            <a href="{{ url_for('admin_bulk_pickups') }}" class="btn btn-outline-success d-block">
-                                <i class="fas fa-boxes fa-fw me-2"></i> Bulk Pickups
-                            </a>
-                        </div>
-                    </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <a href="{{ url_for('admin_rewards') }}" class="btn btn-outline-warning d-block border-2">
+                        <i class="fas fa-gift fa-fw me-2"></i> Manage Rewards
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-info d-block border-2">
+                        <i class="fas fa-users fa-fw me-2"></i> Manage Users
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <a href="{{ url_for('admin_bulk_pickups') }}" class="btn btn-outline-success d-block border-2">
+                        <i class="fas fa-boxes fa-fw me-2"></i> Bulk Pickups
+                    </a>
                 </div>
             </div>
         </div>
