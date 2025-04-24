@@ -960,3 +960,185 @@ def create_admin():
         db.session.add(admin)
         db.session.commit()
         app.logger.info('Admin user created')
+        
+# API endpoint for image classification from the frontend
+@app.route('/api/classify', methods=['POST'])
+def api_classify():
+    """
+    API endpoint for e-waste image classification
+    Accepts a multipart form with an 'image' file
+    Returns classification result as JSON
+    """
+    if 'image' not in request.files:
+        return jsonify({'success': False, 'message': 'No image uploaded'}), 400
+    
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'No selected file'}), 400
+    
+    # Save the uploaded file to a temporary location with the original filename
+    original_filename = secure_filename(file.filename)
+    _, temp_path = tempfile.mkstemp(suffix=f'_{original_filename}')
+    
+    try:
+        # Save the image and print debug info
+        file.save(temp_path)
+        print(f"API Processing image: {original_filename}, saved at: {temp_path}")
+        
+        # Classify the image using Roboflow API
+        result = classify_image(temp_path)
+        
+        # Process the classification result
+        detected_items = result.get('predictions', [])
+        
+        if not detected_items:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)  # Clean up on error
+            return jsonify({'success': False, 'message': 'No e-waste detected in the image'}), 400
+        
+        # Get the item with highest confidence
+        best_match = max(detected_items, key=lambda x: x.get('confidence', 0))
+        
+        # Debug the prediction result
+        print(f"API Classification result: {best_match.get('class', 'Unknown')} with confidence {best_match.get('confidence', 0):.2f}")
+        
+        # Create a comprehensive mapping from lowercase to proper case format
+        class_to_type = {
+            'air-conditioner': 'Air-Conditioner',
+            'bar-phone': 'Bar-Phone',
+            'battery': 'Battery',
+            'blood-pressure-monitor': 'Blood-Pressure-Monitor',
+            'boiler': 'Boiler',
+            'crt-monitor': 'CRT-Monitor',
+            'crt-tv': 'CRT-TV',
+            'calculator': 'Calculator',
+            'camera': 'Camera',
+            'ceiling-fan': 'Ceiling-Fan',
+            'christmas-lights': 'Christmas-Lights',
+            'clothes-iron': 'Clothes-Iron',
+            'coffee-machine': 'Coffee-Machine',
+            'compact-fluorescent-lamps': 'Compact-Fluorescent-Lamps',
+            'computer-keyboard': 'Computer-Keyboard',
+            'computer-mouse': 'Computer-Mouse',
+            'cooled-dispenser': 'Cooled-Dispenser',
+            'cooling-display': 'Cooling-Display',
+            'dehumidifier': 'Dehumidifier',
+            'desktop-pc': 'Desktop-PC',
+            'desktop': 'Desktop-PC',
+            'digital-oscilloscope': 'Digital-Oscilloscope',
+            'dishwasher': 'Dishwasher',
+            'drone': 'Drone',
+            'electric-bicycle': 'Electric-Bicycle',
+            'electric-guitar': 'Electric-Guitar',
+            'electrocardiograph-machine': 'Electrocardiograph-Machine',
+            'electronic-keyboard': 'Electronic-Keyboard',
+            'exhaust-fan': 'Exhaust-Fan',
+            'flashlight': 'Flashlight',
+            'flat-panel-monitor': 'Flat-Panel-Monitor',
+            'flat-panel-tv': 'Flat-Panel-TV',
+            'monitor': 'Flat-Panel-Monitor',
+            'tv': 'Flat-Panel-TV',
+            'floor-fan': 'Floor-Fan',
+            'freezer': 'Freezer',
+            'glucose-meter': 'Glucose-Meter',
+            'hdd': 'HDD',
+            'hard disk': 'HDD',
+            'hair-dryer': 'Hair-Dryer',
+            'headphone': 'Headphone',
+            'led-bulb': 'LED-Bulb',
+            'laptop': 'Laptop',
+            'microwave': 'Microwave',
+            'music-player': 'Music-Player',
+            'neon-sign': 'Neon-Sign',
+            'network-switch': 'Network-Switch',
+            'non-cooled-dispenser': 'Non-Cooled-Dispenser',
+            'oven': 'Oven',
+            'pcb': 'PCB',
+            'patient-monitoring-system': 'Patient-Monitoring-System',
+            'photovoltaic-panel': 'Photovoltaic-Panel',
+            'playstation-5': 'PlayStation-5',
+            'playstation': 'PlayStation-5',
+            'ps5': 'PlayStation-5',
+            'power-adapter': 'Power-Adapter',
+            'adapter': 'Power-Adapter',
+            'printer': 'Printer',
+            'projector': 'Projector',
+            'pulse-oximeter': 'Pulse-Oximeter',
+            'range-hood': 'Range-Hood',
+            'refrigerator': 'Refrigerator',
+            'fridge': 'Refrigerator',
+            'rotary-mower': 'Rotary-Mower',
+            'router': 'Router',
+            'ssd': 'SSD',
+            'solid state drive': 'SSD',
+            'server': 'Server',
+            'smart-watch': 'Smart-Watch',
+            'smartwatch': 'Smart-Watch',
+            'smartphone': 'Smartphone',
+            'phone': 'Smartphone',
+            'smoke-detector': 'Smoke-Detector',
+            'soldering-iron': 'Soldering-Iron',
+            'speaker': 'Speaker',
+            'stove': 'Stove',
+            'straight-tube-fluorescent-lamp': 'Straight-Tube-Fluorescent-Lamp',
+            'street-lamp': 'Street-Lamp',
+            'tv-remote-control': 'TV-Remote-Control',
+            'remote': 'TV-Remote-Control',
+            'table-lamp': 'Table-Lamp',
+            'tablet': 'Tablet',
+            'telephone-set': 'Telephone-Set',
+            'toaster': 'Toaster',
+            'tumble-dryer': 'Tumble-Dryer',
+            'dryer': 'Tumble-Dryer',
+            'usb-flash-drive': 'USB-Flash-Drive',
+            'usb': 'USB-Flash-Drive',
+            'vacuum-cleaner': 'Vacuum-Cleaner',
+            'washing-machine': 'Washing-Machine',
+            'washer': 'Washing-Machine',
+            'xbox-series-x': 'Xbox-Series-X',
+            'xbox': 'Xbox-Series-X'
+        }
+        
+        # Extract the class name and standardize it
+        detected_class = best_match.get('class', '')
+        # Convert to lowercase for case-insensitive matching
+        detected_class_lower = detected_class.lower()
+        # Use the mapping if available, otherwise use the original class with proper capitalization
+        ewaste_type = class_to_type.get(detected_class_lower, detected_class)
+        confidence = best_match.get('confidence', 0)
+        
+        # Recycling information for each e-waste type
+        recycling_info = {
+            'Battery': "Batteries contain hazardous materials like lead, cadmium, and mercury that can contaminate soil and water. They should be recycled at designated collection points. The metals can be extracted and reused in new batteries, reducing the need for mining raw materials.",
+            
+            'Smartphone': "Smartphones contain valuable materials like gold, silver, copper, and rare earth elements. These can be recovered during recycling. The circuit boards and components are processed to extract metals, while plastics are recycled separately. Always remove personal data before recycling.",
+            
+            'Laptop': "Laptops contain precious metals in their circuit boards, recyclable aluminum in their cases, and lithium in their batteries. Professional recyclers disassemble them to separate valuable components. The battery should be removed and recycled separately due to its hazardous materials.",
+            
+            'Desktop-PC': "Desktop computers contain recoverable materials like aluminum, copper, gold, and silver. Their large size means more materials can be reclaimed. The hard drives should be properly wiped or physically destroyed to protect personal data before recycling.",
+            
+            'Flat-Panel-Monitor': "Flat panel monitors contain mercury in their backlights and valuable metals in their circuit boards. They should be recycled at e-waste facilities equipped to handle them. The glass, plastic, and metal components are separated and processed individually.",
+            
+            'CRT-Monitor': "CRT monitors contain lead and phosphors that require special handling. They should never be thrown in regular trash as they can release toxic substances. Specialized recyclers safely break down these monitors and contain the harmful materials.",
+        }
+        
+        # Get default recycling info if specific type not found
+        default_info = "This e-waste item contains various materials that can be recovered through proper recycling. Always ensure it is disposed of through certified e-waste recycling facilities to prevent environmental contamination and recover valuable resources."
+        info = recycling_info.get(ewaste_type, default_info)
+        
+        os.unlink(temp_path)  # Delete the temporary file
+        
+        return jsonify({
+            'success': True,
+            'result': {
+                'ewaste_type': ewaste_type,
+                'confidence': confidence,
+                'recycling_info': info
+            }
+        })
+        
+    except Exception as e:
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)  # Clean up on error
+        print(f"API Classification error: {str(e)}")
+        return jsonify({'success': False, 'message': f'Error during classification: {str(e)}'}), 500
