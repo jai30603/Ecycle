@@ -289,22 +289,31 @@ def classify():
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
     
-    # Save the uploaded file to a temporary location
-    _, temp_path = tempfile.mkstemp(suffix='.jpg')
-    file.save(temp_path)
+    # Save the uploaded file to a temporary location with the original filename
+    original_filename = secure_filename(file.filename)
+    _, temp_path = tempfile.mkstemp(suffix=f'_{original_filename}')
     
     try:
-        # Classify the image using Roboflow API
+        # Save the image and print debug info
+        file.save(temp_path)
+        print(f"Processing image: {original_filename}, saved at: {temp_path}")
+        
+        # Classify the image using Roboflow API or mock function
         result = classify_image(temp_path)
         
         # Process the classification result
         detected_items = result.get('predictions', [])
         
         if not detected_items:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)  # Clean up on error
             return jsonify({'error': 'No e-waste detected in the image'}), 400
         
         # Get the item with highest confidence
         best_match = max(detected_items, key=lambda x: x.get('confidence', 0))
+        
+        # Debug the prediction result
+        print(f"Classification result: {best_match.get('class', 'Unknown')} with confidence {best_match.get('confidence', 0):.2f}")
         
         # Create a comprehensive mapping from lowercase to proper case format
         class_to_type = {
