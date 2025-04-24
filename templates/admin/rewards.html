@@ -1,218 +1,237 @@
 {% extends 'base.html' %}
 
-{% block title %}Rewards Management - Ecycle Admin{% endblock %}
+{% block title %}Manage Rewards - Admin - E-Waste Manager{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Rewards Management</h1>
-    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-info">
-        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
-    </a>
-</div>
-
-<div class="row">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">Available Rewards</h5>
-            </div>
-            <div class="card-body p-0">
-                {% if rewards %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Type</th>
-                                    <th>Points</th>
-                                    <th>Stock</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for reward in rewards %}
-                                    <tr>
-                                        <td>{{ reward.id }}</td>
-                                        <td>{{ reward.name }}</td>
-                                        <td>{{ reward.reward_type }}</td>
-                                        <td>{{ reward.points_required }}</td>
-                                        <td>
-                                            <span class="badge {% if reward.stock <= 3 %}bg-warning text-dark{% else %}bg-info{% endif %}">
-                                                {{ reward.stock }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge {% if reward.active %}bg-success{% else %}bg-secondary{% endif %}">
-                                                {{ 'Active' if reward.active else 'Inactive' }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#rewardDetails{{ reward.id }}">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
-                                                <form action="{{ url_for('admin_update_reward', reward_id=reward.id) }}" method="POST" class="d-inline">
-                                                    <input type="hidden" name="action" value="toggle_active">
-                                                    <button type="submit" class="btn btn-sm {% if reward.active %}btn-outline-secondary{% else %}btn-outline-success{% endif %}">
-                                                        <i class="fas {% if reward.active %}fa-ban{% else %}fa-check{% endif %}"></i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                            
-                                            <!-- Reward Details Modal -->
-                                            <div class="modal fade" id="rewardDetails{{ reward.id }}" tabindex="-1" aria-labelledby="rewardDetailsLabel{{ reward.id }}" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" id="rewardDetailsLabel{{ reward.id }}">{{ reward.name }}</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <p><strong>Description:</strong> {{ reward.description }}</p>
-                                                            <p><strong>Type:</strong> {{ reward.reward_type }}</p>
-                                                            <p><strong>Points Required:</strong> {{ reward.points_required }}</p>
-                                                            <p><strong>Current Stock:</strong> {{ reward.stock }}</p>
-                                                            <p><strong>Status:</strong> {{ 'Active' if reward.active else 'Inactive' }}</p>
-                                                            <p><strong>Created:</strong> {{ reward.created_at.strftime('%b %d, %Y') }}</p>
-                                                            
-                                                            <hr>
-                                                            <h6>Update Stock</h6>
-                                                            <form action="{{ url_for('admin_update_reward', reward_id=reward.id) }}" method="POST">
-                                                                <input type="hidden" name="action" value="update_stock">
-                                                                <div class="input-group mb-3">
-                                                                    <input type="number" name="stock" class="form-control" min="0" value="{{ reward.stock }}">
-                                                                    <button class="btn btn-outline-primary" type="submit">Update</button>
-                                                                </div>
-                                                            </form>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <form action="{{ url_for('admin_update_reward', reward_id=reward.id) }}" method="POST">
-                                                                <input type="hidden" name="action" value="toggle_active">
-                                                                <button type="submit" class="btn {% if reward.active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
-                                                                    {{ 'Deactivate' if reward.active else 'Activate' }} Reward
-                                                                </button>
-                                                            </form>
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="text-center py-4">
-                        <p>No rewards available. Create your first reward using the form.</p>
-                    </div>
-                {% endif %}
-            </div>
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-3">Manage Rewards</h1>
+            <p class="lead">Add, edit, or remove rewards that users can redeem with their eco-points</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-light me-2">
+                <i class="fas fa-chart-line me-2"></i> Dashboard
+            </a>
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">
+                <i class="fas fa-sign-out-alt me-2"></i> Logout
+            </a>
         </div>
     </div>
     
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">Add New Reward</h5>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('admin_rewards') }}">
-                    {{ form.hidden_tag() }}
-                    
-                    <div class="mb-3">
-                        <label for="name" class="form-label">{{ form.name.label }}</label>
-                        {{ form.name(class="form-control", id="name") }}
-                        {% if form.name.errors %}
-                            {% for error in form.name.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="description" class="form-label">{{ form.description.label }}</label>
-                        {{ form.description(class="form-control", id="description", rows="3") }}
-                        {% if form.description.errors %}
-                            {% for error in form.description.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="points_required" class="form-label">{{ form.points_required.label }}</label>
-                        {{ form.points_required(class="form-control", id="points_required", type="number", min="1") }}
-                        {% if form.points_required.errors %}
-                            {% for error in form.points_required.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="reward_type" class="form-label">{{ form.reward_type.label }}</label>
-                        {{ form.reward_type(class="form-control", id="reward_type") }}
-                        {% if form.reward_type.errors %}
-                            {% for error in form.reward_type.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="stock" class="form-label">{{ form.stock.label }}</label>
-                        {{ form.stock(class="form-control", id="stock", type="number", min="0") }}
-                        {% if form.stock.errors %}
-                            {% for error in form.stock.errors %}
-                                <div class="text-danger">{{ error }}</div>
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                    
-                    <div class="d-grid">
-                        {{ form.submit(class="btn btn-primary") }}
-                    </div>
-                </form>
+    <div class="row">
+        <!-- Add New Reward Form -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Add New Reward</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin_rewards') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Reward Name</label>
+                            {{ form.name(class="form-control", placeholder="Enter reward name") }}
+                            {% if form.name.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.name.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            {{ form.description(class="form-control", rows=3, placeholder="Enter reward description") }}
+                            {% if form.description.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.description.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="points_required" class="form-label">Points Required</label>
+                            {{ form.points_required(class="form-control", placeholder="Enter points required") }}
+                            {% if form.points_required.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.points_required.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="reward_type" class="form-label">Reward Type</label>
+                            {{ form.reward_type(class="form-control") }}
+                            {% if form.reward_type.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.reward_type.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="stock" class="form-label">Stock</label>
+                            {{ form.stock(class="form-control", placeholder="Enter available stock") }}
+                            {% if form.stock.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.stock.errors %}
+                                        <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-success") }}
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
         
-        <!-- Reward Statistics -->
-        <div class="card mt-4">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">Reward Statistics</h5>
-            </div>
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-6 text-center">
-                        <h4>{{ rewards|length }}</h4>
-                        <p class="text-muted">Total Rewards</p>
-                    </div>
-                    <div class="col-6 text-center">
-                        <h4>{{ rewards|selectattr('active', 'equalto', true)|list|length }}</h4>
-                        <p class="text-muted">Active Rewards</p>
-                    </div>
+        <!-- Existing Rewards -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Existing Rewards</h4>
                 </div>
-                <div class="row mt-3">
-                    <div class="col-6 text-center">
-                        {% set total_stock = 0 %}
-                        {% for reward in rewards %}
-                            {% set total_stock = total_stock + reward.stock %}
-                        {% endfor %}
-                        <h4>{{ total_stock }}</h4>
-                        <p class="text-muted">Available Stock</p>
-                    </div>
-                    <div class="col-6 text-center">
-                        {% set total_redemptions = 0 %}
-                        {% for reward in rewards %}
-                            {% set total_redemptions = total_redemptions + reward.redemptions|length %}
-                        {% endfor %}
-                        <h4>{{ total_redemptions }}</h4>
-                        <p class="text-muted">Total Redemptions</p>
-                    </div>
+                <div class="card-body">
+                    {% if rewards %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>Points</th>
+                                        <th>Stock</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for reward in rewards %}
+                                        <tr>
+                                            <td>{{ reward.name }}</td>
+                                            <td>{{ reward.reward_type }}</td>
+                                            <td>{{ reward.points_required }}</td>
+                                            <td>{{ reward.stock }}</td>
+                                            <td>
+                                                {% if reward.active %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{{ url_for('edit_reward', reward_id=reward.id) }}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    {% if reward.active %}
+                                                        <a href="{{ url_for('toggle_reward', reward_id=reward.id) }}" class="btn btn-sm btn-outline-danger">
+                                                            <i class="fas fa-ban"></i>
+                                                        </a>
+                                                    {% else %}
+                                                        <a href="{{ url_for('toggle_reward', reward_id=reward.id) }}" class="btn btn-sm btn-outline-success">
+                                                            <i class="fas fa-check"></i>
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-gift fa-3x mb-3 text-muted"></i>
+                            <h5>No Rewards Available</h5>
+                            <p>Use the form to add new rewards for users.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Redemption History -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h4 class="mb-0">Recent Redemptions</h4>
+                </div>
+                <div class="card-body">
+                    {% if redemptions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Reward</th>
+                                        <th>Points</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for redemption in redemptions %}
+                                        <tr>
+                                            <td>{{ redemption.user.username }}</td>
+                                            <td>{{ redemption.reward.name }}</td>
+                                            <td>{{ redemption.points_spent }}</td>
+                                            <td>
+                                                {% if redemption.status == 'Pending' %}
+                                                    <span class="badge bg-warning">Pending</span>
+                                                {% elif redemption.status == 'Processed' %}
+                                                    <span class="badge bg-primary">Processed</span>
+                                                {% elif redemption.status == 'Delivered' %}
+                                                    <span class="badge bg-success">Delivered</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">{{ redemption.status }}</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ redemption.redeemed_at.strftime('%Y-%m-%d') }}</td>
+                                            <td>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="statusDropdown{{ redemption.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                                        Update
+                                                    </button>
+                                                    <ul class="dropdown-menu" aria-labelledby="statusDropdown{{ redemption.id }}">
+                                                        <li>
+                                                            <a href="{{ url_for('update_redemption_status', redemption_id=redemption.id, status='Processed') }}" class="dropdown-item">
+                                                                Mark as Processed
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="{{ url_for('update_redemption_status', redemption_id=redemption.id, status='Delivered') }}" class="dropdown-item">
+                                                                Mark as Delivered
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a href="{{ url_for('update_redemption_status', redemption_id=redemption.id, status='Pending') }}" class="dropdown-item">
+                                                                Mark as Pending
+                                                            </a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center py-3">No redemptions have been made yet.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
