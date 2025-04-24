@@ -1637,7 +1637,7 @@ def certificates():
     # Get all completed bulk pickups for the user
     bulk_certificates = BulkPickup.query.filter_by(
         user_id=user_id,
-        status='Collected'
+        status=BulkPickupStatus.COLLECTED
     ).order_by(BulkPickup.updated_at.desc()).all()
     
     # Calculate carbon footprint for each regular pickup
@@ -1727,7 +1727,7 @@ def download_bulk_certificate(bulk_pickup_id):
         return redirect(url_for('dashboard'))
     
     # Check if the pickup status is "Collected"
-    if bulk_pickup.status != 'Collected':
+    if bulk_pickup.status != BulkPickupStatus.COLLECTED:
         flash('Certificate is only available for completed pickups.', 'warning')
         return redirect(url_for('bulk_history'))
     
