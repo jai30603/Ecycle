@@ -487,10 +487,10 @@ def generate_bulk_disposal_certificate(user, bulk_pickup, items):
         bottomMargin=50
     )
     
-    # Define green colors for the eco-themed certificate
-    eco_dark_green = colors.Color(0.1, 0.5, 0.1)
-    eco_medium_green = colors.Color(0.2, 0.6, 0.2)
-    eco_light_green = colors.Color(0.8, 0.9, 0.8)
+    # Define red colors for the bulk certificate theme
+    eco_dark_green = colors.Color(0.6, 0.1, 0.1)  # Dark red
+    eco_medium_green = colors.Color(0.8, 0.2, 0.2)  # Medium red
+    eco_light_green = colors.Color(0.98, 0.9, 0.9)  # Light red
     
     # Styles for the document with enhanced typography
     styles = getSampleStyleSheet()
