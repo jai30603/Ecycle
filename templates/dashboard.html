@@ -216,6 +216,83 @@
     </div>
 </div>
 
+<!-- Leaderboard Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <h3 class="mb-3">Leaderboard</h3>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Eco Points Leaderboard -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Top Eco Warriors <i class="fas fa-leaf ms-2"></i></h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <span class="badge bg-primary fs-6">Your Rank: #{{ user_rank }}</span>
+                </div>
+                <div class="list-group">
+                    {% for leader in eco_leaders %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center {% if leader.id == user.id %}list-group-item-success{% endif %}">
+                            <div>
+                                <span class="fw-bold me-2">#{{ loop.index }}</span>
+                                {{ leader.username }}
+                                {% if leader.id == user.id %}
+                                    <span class="badge bg-info ms-2">You</span>
+                                {% endif %}
+                            </div>
+                            <span class="badge bg-success rounded-pill">{{ leader.eco_points }} points</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card-footer bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">Based on eco points earned</small>
+                    <a href="{{ url_for('schedule') }}" class="btn btn-sm btn-outline-success">Earn More Points</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Most E-waste Recycled Leaderboard -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Top Recyclers <i class="fas fa-recycle ms-2"></i></h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <span class="badge bg-success fs-6">Your Items: {{ total_items }}</span>
+                </div>
+                <div class="list-group">
+                    {% for leader in ewaste_leaders %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center {% if leader.id == user.id %}list-group-item-info{% endif %}">
+                            <div>
+                                <span class="fw-bold me-2">#{{ loop.index }}</span>
+                                {{ leader.username }}
+                                {% if leader.id == user.id %}
+                                    <span class="badge bg-info ms-2">You</span>
+                                {% endif %}
+                            </div>
+                            <span class="badge bg-info rounded-pill">{{ leader.items_count }} items</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="card-footer bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">Based on number of items recycled</small>
+                    <a href="{{ url_for('history') }}" class="btn btn-sm btn-outline-info">View Your Items</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Quick Actions -->
 <div class="row mt-4">
     <div class="col-12">
