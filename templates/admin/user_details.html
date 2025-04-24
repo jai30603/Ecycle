@@ -1,200 +1,352 @@
 {% extends 'base.html' %}
 
-{% block title %}User Details - Ecycle Admin{% endblock %}
+{% block title %}User Details - Admin - Ecycle{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>User Details</h1>
-    <a href="{{ url_for('admin_users') }}" class="btn btn-outline-info">
-        <i class="fas fa-arrow-left me-1"></i> Back to Users
-    </a>
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="mb-0">User Details: {{ user.username }}</h1>
+        <p class="text-muted">{{ user.email }}</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <div class="btn-group">
+            <a href="{{ url_for('admin_users') }}" class="btn btn-outline-info">
+                <i class="fas fa-arrow-left me-1"></i> Back to Users
+            </a>
+        </div>
+    </div>
 </div>
 
-<div class="row mb-4">
+<div class="row g-4">
+    <!-- User Information -->
     <div class="col-md-4">
-        <div class="card">
-            <div class="card-header bg-info text-white">
+        <div class="card h-100">
+            <div class="card-header">
                 <h5 class="mb-0">User Information</h5>
             </div>
             <div class="card-body">
-                <div class="mb-3 text-center">
-                    <i class="fas fa-user-circle text-info fs-1"></i>
-                </div>
+                <p><strong>Username:</strong> {{ user.username }}</p>
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>Joined:</strong> {{ user.created_at.strftime('%B %d, %Y') }}</p>
+                
                 <div class="mb-3">
-                    <h6 class="text-muted">Username</h6>
-                    <p class="fs-5">{{ user.username }}</p>
+                    <label class="fw-bold">Eco Points</label>
+                    <div class="d-flex align-items-center mt-2">
+                        <div class="eco-points-large me-3">{{ user.eco_points }}</div>
+                        <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#updatePointsForm">
+                            <i class="fas fa-edit me-1"></i> Update
+                        </button>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <h6 class="text-muted">Email</h6>
-                    <p>{{ user.email }}</p>
+                
+                <div class="collapse mt-3" id="updatePointsForm">
+                    <div class="card card-body bg-dark">
+                        <form action="{{ url_for('admin_update_user', user_id=user.id) }}" method="POST">
+                            <div class="mb-3">
+                                <label for="eco_points" class="form-label">New Eco Points</label>
+                                <input type="number" class="form-control" id="eco_points" name="eco_points" value="{{ user.eco_points }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="update_reason" class="form-label">Reason for Update</label>
+                                <select class="form-select" id="update_reason" name="update_reason" required>
+                                    <option value="">Select reason...</option>
+                                    <option value="Bonus Points">Bonus Points</option>
+                                    <option value="Additional Recycling">Additional Recycling</option>
+                                    <option value="Correction">Correction</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <button type="submit" name="action" value="update_points" class="btn btn-primary">Save Changes</button>
+                        </form>
+                    </div>
                 </div>
+                
                 <div class="mb-3">
-                    <h6 class="text-muted">Joined Date</h6>
-                    <p>{{ user.created_at.strftime('%B %d, %Y') }}</p>
+                    <label class="fw-bold">Carbon Saved</label>
+                    <div class="carbon-saved-display">{{ user.carbon_saved|round(2) }} kg CO₂</div>
                 </div>
-                <div class="mb-3">
-                    <h6 class="text-muted">Eco Points</h6>
-                    <p class="fs-5 text-success">{{ user.eco_points }}</p>
-                </div>
-                <div class="mb-3">
-                    <h6 class="text-muted">Carbon Saved</h6>
-                    <p class="fs-5 text-info">{{ user.carbon_saved|round(1) }} kg</p>
+                
+                <div class="d-grid gap-2 mt-4">
+                    <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#accountActionsModal">
+                        <i class="fas fa-exclamation-triangle me-1"></i> Account Actions
+                    </button>
                 </div>
             </div>
         </div>
     </div>
     
+    <!-- User Activity -->
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">E-waste Items</h5>
+        <div class="card mb-4">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="userTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="ewaste-tab" data-bs-toggle="tab" data-bs-target="#ewaste" type="button" role="tab">
+                            E-waste Items ({{ ewaste_items|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="pickups-tab" data-bs-toggle="tab" data-bs-target="#pickups" type="button" role="tab">
+                            Pickups ({{ pickups|length }})
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="redemptions-tab" data-bs-toggle="tab" data-bs-target="#redemptions" type="button" role="tab">
+                            Redemptions ({{ redemptions|length }})
+                        </button>
+                    </li>
+                </ul>
             </div>
-            <div class="card-body p-0">
-                {% if ewaste_items %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Type</th>
-                                    <th>Model</th>
-                                    <th>Condition</th>
-                                    <th>Price</th>
-                                    <th>Points</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in ewaste_items %}
-                                    <tr>
-                                        <td>{{ item.ewaste_type }}</td>
-                                        <td>{{ item.model if item.model else 'N/A' }}</td>
-                                        <td>{{ item.condition }}</td>
-                                        <td>${{ item.estimated_price }}</td>
-                                        <td>
-                                            <span class="badge bg-success">{{ item.eco_points }}</span>
-                                        </td>
-                                        <td>{{ item.created_at.strftime('%b %d, %Y') }}</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+            <div class="card-body">
+                <div class="tab-content" id="userTabContent">
+                    <!-- E-waste Items Tab -->
+                    <div class="tab-pane fade show active" id="ewaste" role="tabpanel">
+                        {% if ewaste_items %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Type</th>
+                                            <th>Condition</th>
+                                            <th>Eco Points</th>
+                                            <th>Estimated Price</th>
+                                            <th>Date Added</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in ewaste_items %}
+                                            <tr>
+                                                <td>{{ item.ewaste_type }}</td>
+                                                <td>{{ item.condition }}</td>
+                                                <td>{{ item.eco_points }}</td>
+                                                <td>${{ item.estimated_price }}</td>
+                                                <td>{{ item.created_at.strftime('%m/%d/%Y') }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                No e-waste items recorded for this user.
+                            </div>
+                        {% endif %}
                     </div>
-                {% else %}
-                    <div class="text-center py-4">
-                        <p>No e-waste items found for this user.</p>
+                    
+                    <!-- Pickups Tab -->
+                    <div class="tab-pane fade" id="pickups" role="tabpanel">
+                        {% if pickups %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>E-waste</th>
+                                            <th>Pickup Date</th>
+                                            <th>Address</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for pickup in pickups %}
+                                            <tr>
+                                                <td>{{ pickup.id }}</td>
+                                                <td>{{ pickup.ewaste.ewaste_type }}</td>
+                                                <td>{{ pickup.pickup_date.strftime('%m/%d/%Y %H:%M') }}</td>
+                                                <td>{{ pickup.pickup_address|truncate(20) }}</td>
+                                                <td>
+                                                    <span class="badge {% if pickup.status == 'Pending' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                                        {{ pickup.status }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <form action="{{ url_for('admin_update_pickup', pickup_id=pickup.id) }}" method="POST" class="d-inline">
+                                                        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto; display: inline-block;">
+                                                            <option value="Pending" {% if pickup.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                                            <option value="Collected" {% if pickup.status == 'Collected' %}selected{% endif %}>Collected</option>
+                                                        </select>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                No pickups scheduled by this user.
+                            </div>
+                        {% endif %}
                     </div>
-                {% endif %}
+                    
+                    <!-- Redemptions Tab -->
+                    <div class="tab-pane fade" id="redemptions" role="tabpanel">
+                        {% if redemptions %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Reward</th>
+                                            <th>Points Spent</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for redemption in redemptions %}
+                                            <tr>
+                                                <td>{{ redemption.reward.name }}</td>
+                                                <td>{{ redemption.points_spent }}</td>
+                                                <td>
+                                                    <span class="badge {% if redemption.status == 'Pending' %}bg-warning text-dark{% elif redemption.status == 'Processed' %}bg-info{% else %}bg-success{% endif %}">
+                                                        {{ redemption.status }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ redemption.redeemed_at.strftime('%m/%d/%Y') }}</td>
+                                                <td>
+                                                    <form action="{{ url_for('admin_update_redemption', redemption_id=redemption.id) }}" method="POST">
+                                                        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto; display: inline-block;">
+                                                            <option value="Pending" {% if redemption.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                                            <option value="Processed" {% if redemption.status == 'Processed' %}selected{% endif %}>Processed</option>
+                                                            <option value="Delivered" {% if redemption.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                                        </select>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                No rewards redeemed by this user.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Activity Chart -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Activity Summary</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="userActivityChart" height="200"></canvas>
             </div>
         </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">Pickup History</h5>
+<!-- Account Actions Modal -->
+<div class="modal fade" id="accountActionsModal" tabindex="-1" aria-labelledby="accountActionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="accountActionsModalLabel">Account Actions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="card-body p-0">
-                {% if pickups %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>E-waste Type</th>
-                                    <th>Address</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for pickup in pickups %}
-                                    <tr>
-                                        <td>{{ pickup.pickup_date.strftime('%b %d, %Y') }}</td>
-                                        <td>{{ pickup.ewaste.ewaste_type }}</td>
-                                        <td>{{ pickup.pickup_address|truncate(20) }}</td>
-                                        <td>
-                                            <span class="badge {% if pickup.status == 'Pending' %}bg-warning text-dark{% else %}bg-success{% endif %}">
-                                                {{ pickup.status }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <form action="{{ url_for('admin_update_pickup', pickup_id=pickup.id) }}" method="POST" class="d-flex gap-2">
-                                                <select name="status" class="form-select form-select-sm">
-                                                    <option value="Pending" {% if pickup.status == 'Pending' %}selected{% endif %}>Pending</option>
-                                                    <option value="Collected" {% if pickup.status == 'Collected' %}selected{% endif %}>Collected</option>
-                                                </select>
-                                                <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i> The following actions are irreversible. Proceed with caution.
+                </div>
+                
+                <form action="{{ url_for('admin_update_user', user_id=user.id) }}" method="POST" id="resetPasswordForm">
+                    <div class="d-grid mb-3">
+                        <button type="submit" name="action" value="reset_password" class="btn btn-warning">
+                            <i class="fas fa-key me-1"></i> Reset Password
+                        </button>
                     </div>
-                {% else %}
-                    <div class="text-center py-4">
-                        <p>No pickups found for this user.</p>
+                </form>
+                
+                <hr>
+                
+                <form action="{{ url_for('admin_update_user', user_id=user.id) }}" method="POST" id="deleteUserForm">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                            <label class="form-check-label" for="confirmDelete">
+                                I understand this will permanently delete all user data
+                            </label>
+                        </div>
                     </div>
-                {% endif %}
+                    <div class="d-grid">
+                        <button type="submit" name="action" value="delete_user" class="btn btn-danger" id="deleteUserBtn" disabled>
+                            <i class="fas fa-trash-alt me-1"></i> Delete User Account
+                        </button>
+                    </div>
+                </form>
             </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">Redemption History</h5>
-            </div>
-            <div class="card-body p-0">
-                {% if redemptions %}
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Reward</th>
-                                    <th>Points</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for redemption in redemptions %}
-                                    <tr>
-                                        <td>{{ redemption.redeemed_at.strftime('%b %d, %Y') }}</td>
-                                        <td>{{ redemption.reward.name }}</td>
-                                        <td>
-                                            <span class="text-danger">-{{ redemption.points_spent }}</span>
-                                        </td>
-                                        <td>
-                                            <span class="badge {% if redemption.status == 'Pending' %}bg-warning text-dark{% elif redemption.status == 'Processed' %}bg-info{% else %}bg-success{% endif %}">
-                                                {{ redemption.status }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <form action="{{ url_for('admin_update_redemption', redemption_id=redemption.id) }}" method="POST" class="d-flex gap-2">
-                                                <select name="status" class="form-select form-select-sm">
-                                                    <option value="Pending" {% if redemption.status == 'Pending' %}selected{% endif %}>Pending</option>
-                                                    <option value="Processed" {% if redemption.status == 'Processed' %}selected{% endif %}>Processed</option>
-                                                    <option value="Delivered" {% if redemption.status == 'Delivered' %}selected{% endif %}>Delivered</option>
-                                                </select>
-                                                <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <div class="text-center py-4">
-                        <p>No redemptions found for this user.</p>
-                    </div>
-                {% endif %}
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize the user activity chart
+        const ctx = document.getElementById('userActivityChart').getContext('2d');
+        
+        // Random sample data for chart based on user's history
+        // In a real app, this would come from the server based on actual user data
+        const userActivityChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'E-waste Items',
+                    data: [{{ ewaste_items|length }}, {{ ewaste_items|length - 1 if ewaste_items|length > 0 else 0 }}, {{ ewaste_items|length - 2 if ewaste_items|length > 1 else 0 }}, 0, 0, 0],
+                    borderColor: 'rgba(78, 115, 223, 1)',
+                    backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Eco Points',
+                    data: [{{ user.eco_points // 4 }}, {{ user.eco_points // 3 }}, {{ user.eco_points // 2 }}, {{ user.eco_points }}, {{ user.eco_points }}, {{ user.eco_points }}],
+                    borderColor: 'rgba(28, 200, 138, 1)',
+                    backgroundColor: 'rgba(28, 200, 138, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // Enable/disable delete button based on checkbox
+        const confirmDeleteCheckbox = document.getElementById('confirmDelete');
+        const deleteUserBtn = document.getElementById('deleteUserBtn');
+        
+        if (confirmDeleteCheckbox && deleteUserBtn) {
+            confirmDeleteCheckbox.addEventListener('change', function() {
+                deleteUserBtn.disabled = !this.checked;
+            });
+        }
+    });
+</script>
 {% endblock %}

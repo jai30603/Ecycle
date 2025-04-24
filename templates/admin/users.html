@@ -1,49 +1,184 @@
 {% extends 'base.html' %}
 
-{% block title %}User Management - Ecycle Admin{% endblock %}
+{% block title %}User Management - Admin - Ecycle{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>User Management</h1>
-    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-info">
-        <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
-    </a>
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="mb-0">User Management</h1>
+        <p class="text-muted">Manage registered users and their accounts</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <div class="btn-group">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-info">
+                <i class="fas fa-arrow-left me-1"></i> Dashboard
+            </a>
+        </div>
+    </div>
 </div>
 
+<!-- User Stats -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card admin-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted">Total Users</h6>
+                        <h3>{{ users|length }}</h3>
+                    </div>
+                    <div class="fs-1 text-info">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card admin-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted">New Users (30d)</h6>
+                        <h3>{{ new_users_count|default(0) }}</h3>
+                    </div>
+                    <div class="fs-1 text-success">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card admin-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted">Avg. Eco Points</h6>
+                        <h3>{{ avg_eco_points|default(0)|round|int }}</h3>
+                    </div>
+                    <div class="fs-1 text-warning">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card admin-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted">Total Carbon Saved</h6>
+                        <h3>{{ total_carbon_saved|default(0)|round|int }} kg</h3>
+                    </div>
+                    <div class="fs-1 text-info">
+                        <i class="fas fa-tree"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form action="{{ url_for('admin_users') }}" method="GET" class="row g-3">
+            <div class="col-md-4">
+                <label for="search" class="form-label">Search</label>
+                <input type="text" class="form-control" id="search" name="search" placeholder="Username or email" value="{{ request.args.get('search', '') }}">
+            </div>
+            <div class="col-md-3">
+                <label for="sort" class="form-label">Sort By</label>
+                <select class="form-select" id="sort" name="sort">
+                    <option value="username" {% if request.args.get('sort') == 'username' %}selected{% endif %}>Username</option>
+                    <option value="date" {% if request.args.get('sort') == 'date' %}selected{% endif %}>Join Date</option>
+                    <option value="points" {% if request.args.get('sort') == 'points' %}selected{% endif %}>Eco Points</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="order" class="form-label">Order</label>
+                <select class="form-select" id="order" name="order">
+                    <option value="asc" {% if request.args.get('order') == 'asc' %}selected{% endif %}>Ascending</option>
+                    <option value="desc" {% if request.args.get('order') == 'desc' %}selected{% endif %}>Descending</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Users Table -->
 <div class="card">
-    <div class="card-header bg-info text-white">
-        <h5 class="mb-0">All Users</h5>
+    <div class="card-header">
+        <h5 class="mb-0">Registered Users</h5>
     </div>
     <div class="card-body p-0">
         {% if users %}
             <div class="table-responsive">
-                <table class="table table-hover mb-0">
+                <table class="table table-hover table-striped">
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Username</th>
                             <th>Email</th>
+                            <th>Joined</th>
                             <th>Eco Points</th>
                             <th>Carbon Saved</th>
-                            <th>Joined Date</th>
+                            <th>E-waste</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for user in users %}
                             <tr>
-                                <td>{{ user.id }}</td>
                                 <td>{{ user.username }}</td>
                                 <td>{{ user.email }}</td>
+                                <td>{{ user.created_at.strftime('%m/%d/%Y') }}</td>
+                                <td>{{ user.eco_points }}</td>
+                                <td>{{ user.carbon_saved|round(2) }} kg</td>
+                                <td>{{ user.ewaste_items|length }}</td>
                                 <td>
-                                    <span class="badge bg-success">{{ user.eco_points }}</span>
-                                </td>
-                                <td>{{ user.carbon_saved|round(1) }} kg</td>
-                                <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
-                                <td>
-                                    <a href="{{ url_for('admin_user_details', user_id=user.id) }}" class="btn btn-sm btn-outline-info">
-                                        <i class="fas fa-eye me-1"></i> Details
-                                    </a>
+                                    <div class="btn-group">
+                                        <a href="{{ url_for('admin_user_details', user_id=user.id) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> Details
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#quickUpdateModal{{ user.id }}">
+                                            <i class="fas fa-edit"></i> Quick Update
+                                        </button>
+                                    </div>
+                                    
+                                    <!-- Quick Update Modal -->
+                                    <div class="modal fade" id="quickUpdateModal{{ user.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Quick Update: {{ user.username }}</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <form action="{{ url_for('admin_update_user', user_id=user.id) }}" method="POST">
+                                                        <div class="mb-3">
+                                                            <label for="eco_points{{ user.id }}" class="form-label">Eco Points</label>
+                                                            <input type="number" class="form-control" id="eco_points{{ user.id }}" name="eco_points" value="{{ user.eco_points }}">
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label for="update_reason{{ user.id }}" class="form-label">Reason</label>
+                                                            <select class="form-select" id="update_reason{{ user.id }}" name="update_reason">
+                                                                <option value="Bonus Points">Bonus Points</option>
+                                                                <option value="Additional Recycling">Additional Recycling</option>
+                                                                <option value="Correction">Correction</option>
+                                                                <option value="Other">Other</option>
+                                                            </select>
+                                                        </div>
+                                                        <button type="submit" name="action" value="update_points" class="btn btn-primary">Update Points</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </td>
                             </tr>
                         {% endfor %}
@@ -51,88 +186,10 @@
                 </table>
             </div>
         {% else %}
-            <div class="text-center py-4">
-                <p>No users found in the system.</p>
+            <div class="alert alert-info m-3">
+                No users found.
             </div>
         {% endif %}
-    </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">User Statistics</h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="text-center">
-                            <h2>{{ users|length }}</h2>
-                            <p class="text-muted">Total Users</p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="text-center">
-                            {% set total_points = 0 %}
-                            {% for user in users %}
-                                {% set total_points = total_points + user.eco_points %}
-                            {% endfor %}
-                            <h2>{{ total_points }}</h2>
-                            <p class="text-muted">Total Eco Points</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row g-4 mt-2">
-                    <div class="col-md-6">
-                        <div class="text-center">
-                            {% set total_carbon = 0 %}
-                            {% for user in users %}
-                                {% set total_carbon = total_carbon + user.carbon_saved %}
-                            {% endfor %}
-                            <h2>{{ total_carbon|round(1) }} kg</h2>
-                            <p class="text-muted">Total Carbon Saved</p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="text-center">
-                            {% set recent_users = 0 %}
-                            {% for user in users %}
-                                {% if (now - user.created_at).days <= 30 %}
-                                    {% set recent_users = recent_users + 1 %}
-                                {% endif %}
-                            {% endfor %}
-                            <h2>{{ recent_users }}</h2>
-                            <p class="text-muted">New Users (30 days)</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">Top Users by Eco Points</h5>
-            </div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    {% for user in users|sort(attribute='eco_points', reverse=true)[:5] %}
-                        <li class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-0">{{ user.username }}</h6>
-                                    <small class="text-muted">{{ user.email }}</small>
-                                </div>
-                                <span class="badge bg-success">{{ user.eco_points }} points</span>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
     </div>
 </div>
 {% endblock %}
