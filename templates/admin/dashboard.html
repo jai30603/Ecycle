@@ -402,10 +402,15 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Check if Chart is defined
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js is not loaded!');
+            return;
+        }
+        
         // Parse JSON data from Flask
         const months = {{ months_json|safe }};
         const pickupsData = {{ pickups_data_json|safe }};
@@ -418,184 +423,214 @@
         const topUserNames = {{ top_user_names_json|safe }};
         const topUserPoints = {{ top_user_points_json|safe }};
         
+        console.log('Chart data loaded:', { months, pickupsData, userRegData });
+        
         // Set Chart.js default options for all charts
         Chart.defaults.color = '#e9ecef';
         Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
         
-        // 1. Monthly Activity Chart
-        const activityCtx = document.getElementById('monthlyActivityChart').getContext('2d');
-        new Chart(activityCtx, {
-            type: 'line',
-            data: {
-                labels: months,
-                datasets: [
-                    {
-                        label: 'Pickups',
-                        data: pickupsData,
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
+        try {
+            // 1. Monthly Activity Chart
+            const activityCanvas = document.getElementById('monthlyActivityChart');
+            if (activityCanvas) {
+                const activityCtx = activityCanvas.getContext('2d');
+                new Chart(activityCtx, {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [
+                            {
+                                label: 'Pickups',
+                                data: pickupsData,
+                                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true
+                            },
+                            {
+                                label: 'New Users',
+                                data: userRegData,
+                                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                                borderColor: 'rgba(75, 192, 192, 1)',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true
+                            }
+                        ]
                     },
-                    {
-                        label: 'New Users',
-                        data: userRegData,
-                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: 'Monthly Activity Trends'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        }
-                    }
-                }
-            }
-        });
-        
-        // 2. Status Donut Chart
-        const donutCtx = document.getElementById('statusDonutChart').getContext('2d');
-        new Chart(donutCtx, {
-            type: 'doughnut',
-            data: {
-                labels: statusLabels,
-                datasets: [{
-                    data: statusData,
-                    backgroundColor: statusColors,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                    },
-                    title: {
-                        display: true,
-                        text: 'Pickup Status Distribution'
-                    }
-                },
-                cutout: '65%'
-            }
-        });
-        
-        // 3. Top E-Waste Types Bar Chart
-        const ewasteCtx = document.getElementById('ewasteBarChart').getContext('2d');
-        new Chart(ewasteCtx, {
-            type: 'bar',
-            data: {
-                labels: ecoTypes,
-                datasets: [{
-                    label: 'Eco Points',
-                    data: ecoPoints,
-                    backgroundColor: 'rgba(40, 167, 69, 0.7)',
-                    borderColor: 'rgba(40, 167, 69, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    title: {
-                        display: true,
-                        text: 'E-Waste Types by Eco Points'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Monthly Activity Trends'
+                            }
                         },
-                        title: {
-                            display: true,
-                            text: 'Eco Points'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                }
+                            }
                         }
                     }
-                }
+                });
+                console.log('Activity chart initialized');
+            } else {
+                console.error('Could not find monthlyActivityChart canvas');
             }
-        });
-        
-        // 4. Top Users Chart
-        const usersCtx = document.getElementById('topUsersChart').getContext('2d');
-        const gradientFill = usersCtx.createLinearGradient(0, 0, 0, 400);
-        gradientFill.addColorStop(0, 'rgba(255, 193, 7, 0.8)');
-        gradientFill.addColorStop(1, 'rgba(255, 193, 7, 0.2)');
-        
-        new Chart(usersCtx, {
-            type: 'bar',
-            data: {
-                labels: topUserNames,
-                datasets: [{
-                    label: 'Eco Points',
-                    data: topUserPoints,
-                    backgroundColor: gradientFill,
-                    borderColor: 'rgba(255, 193, 7, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: false
+            
+            // 2. Status Donut Chart
+            const donutCanvas = document.getElementById('statusDonutChart');
+            if (donutCanvas) {
+                const donutCtx = donutCanvas.getContext('2d');
+                new Chart(donutCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusLabels,
+                        datasets: [{
+                            data: statusData,
+                            backgroundColor: statusColors,
+                            borderWidth: 1
+                        }]
                     },
-                    title: {
-                        display: true,
-                        text: 'Top Users by Eco Points'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Pickup Status Distribution'
+                            }
                         },
-                        title: {
-                            display: true,
-                            text: 'Eco Points'
-                        }
+                        cutout: '65%'
+                    }
+                });
+                console.log('Donut chart initialized');
+            } else {
+                console.error('Could not find statusDonutChart canvas');
+            }
+            
+            // 3. Top E-Waste Types Bar Chart
+            const ewasteCanvas = document.getElementById('ewasteBarChart');
+            if (ewasteCanvas) {
+                const ewasteCtx = ewasteCanvas.getContext('2d');
+                new Chart(ewasteCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ecoTypes,
+                        datasets: [{
+                            label: 'Eco Points',
+                            data: ecoPoints,
+                            backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                            borderColor: 'rgba(40, 167, 69, 1)',
+                            borderWidth: 1
+                        }]
                     },
-                    x: {
-                        grid: {
-                            display: false
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'E-Waste Types by Eco Points'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Eco Points'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
                         }
                     }
-                }
+                });
+                console.log('E-waste chart initialized');
+            } else {
+                console.error('Could not find ewasteBarChart canvas');
             }
-        });
+            
+            // 4. Top Users Chart
+            const usersCanvas = document.getElementById('topUsersChart');
+            if (usersCanvas) {
+                const usersCtx = usersCanvas.getContext('2d');
+                const gradientFill = usersCtx.createLinearGradient(0, 0, 0, 400);
+                gradientFill.addColorStop(0, 'rgba(255, 193, 7, 0.8)');
+                gradientFill.addColorStop(1, 'rgba(255, 193, 7, 0.2)');
+                
+                new Chart(usersCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: topUserNames,
+                        datasets: [{
+                            label: 'Eco Points',
+                            data: topUserPoints,
+                            backgroundColor: gradientFill,
+                            borderColor: 'rgba(255, 193, 7, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Top Users by Eco Points'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Eco Points'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log('Users chart initialized');
+            } else {
+                console.error('Could not find topUsersChart canvas');
+            }
+        } catch (error) {
+            console.error('Error initializing charts:', error);
+        }
     });
 </script>
 {% endblock %}
