@@ -6,12 +6,12 @@ import csv
 import pandas as pd
 from io import BytesIO, StringIO
 from datetime import datetime, timedelta
-from flask import render_template, request, redirect, url_for, flash, session, jsonify, make_response, send_file, abort
+from flask import render_template, request, redirect, url_for, flash, session, jsonify, make_response, send_file, abort, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from app import app, db
 from models import User, Admin, Ewaste, Schedule, Reward, Redemption, BulkPickup, BulkEwasteItem, OrganizationType, EwasteCondition, BulkPickupStatus
-from utils import get_ewaste_news, calculate_carbon_footprint, generate_disposal_certificate
+from utils import get_ewaste_news, calculate_carbon_footprint, generate_disposal_certificate, generate_bulk_disposal_certificate
 from api import classify_image
 from forms import LoginForm, RegisterForm, ScheduleForm, AdminLoginForm, RewardForm, BulkPickupForm, BulkEwasteItemForm
 from sqlalchemy import func, desc

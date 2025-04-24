@@ -1,25 +1,25 @@
 {% extends 'base.html' %}
 
-{% block title %}Bulk E-Waste Pickup - Ecycle{% endblock %}
+{% block title %}Bulk E-Waste Pickup{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 class="mb-4">Organization Bulk E-Waste Pickup</h1>
-    
-    <div class="alert alert-info">
-        <i class="fas fa-info-circle me-2"></i>
-        <strong>For Organizations:</strong> If you have multiple e-waste items for recycling, use this bulk pickup form. Perfect for offices, schools, colleges, and other organizations.
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1>Bulk E-Waste Pickup Request</h1>
+            <p class="lead text-secondary">For businesses, schools, and organizations with multiple e-waste items</p>
+        </div>
     </div>
     
     <div class="row">
         <div class="col-lg-8">
-            <form method="POST" enctype="multipart/form-data" id="bulkPickupForm" class="needs-validation" novalidate>
+            <form method="POST" enctype="multipart/form-data">
                 {{ form.hidden_tag() }}
                 
                 <div class="card mb-4">
                     <div class="card-header bg-primary text-white">
                         <h3 class="h5 mb-0">
-                            <i class="fas fa-building me-2"></i>Organization Details
+                            <i class="fas fa-building me-2"></i>Organization Information
                         </h3>
                     </div>
                     <div class="card-body">
@@ -27,7 +27,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     {{ form.organization_name.label(class="form-label") }}
-                                    {{ form.organization_name(class="form-control" + (" is-invalid" if form.organization_name.errors else "")) }}
+                                    {{ form.organization_name(class="form-control" + (" is-invalid" if form.organization_name.errors else ""), placeholder="Company/School/Organization Name") }}
                                     {% if form.organization_name.errors %}
                                         <div class="invalid-feedback">
                                             {% for error in form.organization_name.errors %}
@@ -53,7 +53,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     {{ form.contact_person.label(class="form-label") }}
-                                    {{ form.contact_person(class="form-control" + (" is-invalid" if form.contact_person.errors else "")) }}
+                                    {{ form.contact_person(class="form-control" + (" is-invalid" if form.contact_person.errors else ""), placeholder="Full Name") }}
                                     {% if form.contact_person.errors %}
                                         <div class="invalid-feedback">
                                             {% for error in form.contact_person.errors %}
@@ -65,21 +65,8 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    {{ form.gstin.label(class="form-label") }}
-                                    {{ form.gstin(class="form-control" + (" is-invalid" if form.gstin.errors else "")) }}
-                                    {% if form.gstin.errors %}
-                                        <div class="invalid-feedback">
-                                            {% for error in form.gstin.errors %}
-                                                {{ error }}
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
                                     {{ form.contact_email.label(class="form-label") }}
-                                    {{ form.contact_email(class="form-control" + (" is-invalid" if form.contact_email.errors else "")) }}
+                                    {{ form.contact_email(class="form-control" + (" is-invalid" if form.contact_email.errors else ""), placeholder="email@example.com") }}
                                     {% if form.contact_email.errors %}
                                         <div class="invalid-feedback">
                                             {% for error in form.contact_email.errors %}
@@ -92,7 +79,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     {{ form.contact_phone.label(class="form-label") }}
-                                    {{ form.contact_phone(class="form-control" + (" is-invalid" if form.contact_phone.errors else "")) }}
+                                    {{ form.contact_phone(class="form-control" + (" is-invalid" if form.contact_phone.errors else ""), placeholder="+1 (123) 456-7890") }}
                                     {% if form.contact_phone.errors %}
                                         <div class="invalid-feedback">
                                             {% for error in form.contact_phone.errors %}
@@ -102,10 +89,23 @@
                                     {% endif %}
                                 </div>
                             </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.gstin.label(class="form-label") }}
+                                    {{ form.gstin(class="form-control" + (" is-invalid" if form.gstin.errors else ""), placeholder="Optional: For tax receipt purposes") }}
+                                    {% if form.gstin.errors %}
+                                        <div class="invalid-feedback">
+                                            {% for error in form.gstin.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
                             <div class="col-12">
                                 <div class="form-group">
                                     {{ form.pickup_address.label(class="form-label") }}
-                                    {{ form.pickup_address(class="form-control" + (" is-invalid" if form.pickup_address.errors else ""), rows=3) }}
+                                    {{ form.pickup_address(class="form-control" + (" is-invalid" if form.pickup_address.errors else ""), rows=3, placeholder="Complete address including street, city, state, and zip code") }}
                                     {% if form.pickup_address.errors %}
                                         <div class="invalid-feedback">
                                             {% for error in form.pickup_address.errors %}
@@ -122,15 +122,23 @@
                 <div class="card mb-4">
                     <div class="card-header bg-success text-white">
                         <h3 class="h5 mb-0">
-                            <i class="fas fa-recycle me-2"></i>E-Waste Items
+                            <i class="fas fa-laptop me-2"></i>E-Waste Items
                         </h3>
                     </div>
                     <div class="card-body">
-                        <div class="mb-3">
-                            <div class="form-group mb-3">
+                        <div class="alert alert-light border mb-4">
+                            <h6><i class="fas fa-info-circle me-2"></i>Two ways to add your e-waste items:</h6>
+                            <ol class="mb-0">
+                                <li>Enter items individually using the form below</li>
+                                <li>Upload a CSV or Excel file with your inventory (optional)</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-group">
                                 {{ form.bulk_file.label(class="form-label") }}
-                                {{ form.bulk_file(class="form-control" + (" is-invalid" if form.bulk_file.errors else "")) }}
-                                <div class="form-text">Upload a CSV/Excel file with columns: Device Type, Model, Quantity, Condition, Notes</div>
+                                {{ form.bulk_file(class="form-control" + (" is-invalid" if form.bulk_file.errors else ""), accept=".csv,.xlsx") }}
+                                <small class="form-text text-muted">Optional: Upload a file with columns: Device Type, Model, Quantity, Condition, Notes</small>
                                 {% if form.bulk_file.errors %}
                                     <div class="invalid-feedback">
                                         {% for error in form.bulk_file.errors %}
@@ -139,64 +147,75 @@
                                     </div>
                                 {% endif %}
                             </div>
-                            
-                            <div class="text-center mb-4">
-                                <div class="d-inline-block">
-                                    <hr class="d-inline-block w-25 mx-2 align-middle">
-                                    <span class="text-muted align-middle">OR add items manually</span>
-                                    <hr class="d-inline-block w-25 mx-2 align-middle">
-                                </div>
-                            </div>
                         </div>
                         
+                        <h5 class="border-bottom pb-2 mb-3">Manual Entry</h5>
+                        
                         <div id="itemsContainer">
-                            <!-- Dynamic items will be added here -->
-                            <div class="ewaste-item-row card mb-3" id="item-template">
-                                <div class="card-body">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="form-label">Device Type</label>
-                                                <select class="form-select ewaste-type" name="ewaste_type[]" required>
-                                                    <option value="" selected disabled>Select device type</option>
-                                                    {% for value, label in form.BulkEwasteItemForm.ewaste_type.choices %}
-                                                        <option value="{{ value }}">{{ label }}</option>
-                                                    {% endfor %}
-                                                </select>
+                            <div class="e-waste-item mb-3">
+                                <div class="card border-secondary">
+                                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0 item-title">Item #1</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">Device Type</label>
+                                                    <select class="form-select ewaste-type" name="ewaste_type[]" required>
+                                                        <option value="" selected disabled>Select device type</option>
+                                                        {% for value, label in [
+                                                        ('Air-Conditioner', 'Air Conditioner'),
+                                                        ('Bar-Phone', 'Bar Phone'),
+                                                        ('Battery', 'Battery'),
+                                                        ('Desktop-PC', 'Desktop Computer'),
+                                                        ('Laptop', 'Laptop'),
+                                                        ('Smartphone', 'Smartphone'),
+                                                        ('Tablet', 'Tablet'),
+                                                        ('Flat-Panel-TV', 'Flat Panel TV'),
+                                                        ('Refrigerator', 'Refrigerator'),
+                                                        ('Washing-Machine', 'Washing Machine'),
+                                                        ('Microwave', 'Microwave'),
+                                                        ('Other', 'Other E-waste')
+                                                    ] %}
+                                                            <option value="{{ value }}">{{ label }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="form-label">Brand/Model</label>
-                                                <input type="text" class="form-control brand-model" name="brand_model[]" placeholder="e.g., Dell XPS 13">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">Brand/Model</label>
+                                                    <input type="text" class="form-control brand-model" name="brand_model[]" placeholder="e.g., Dell XPS 13">
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="form-label">Quantity</label>
-                                                <input type="number" class="form-control quantity" name="quantity[]" min="1" value="1" required>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">Quantity</label>
+                                                    <input type="number" class="form-control quantity" name="quantity[]" min="1" value="1" required>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label class="form-label">Condition</label>
-                                                <select class="form-select condition" name="condition[]" required>
-                                                    <option value="WORKING">Working - Functional</option>
-                                                    <option value="DAMAGED">Damaged - Partially Working</option>
-                                                    <option value="SCRAP">Scrap - Not Working</option>
-                                                </select>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label">Condition</label>
+                                                    <select class="form-select condition" name="condition[]" required>
+                                                        <option value="WORKING">Working - Functional</option>
+                                                        <option value="DAMAGED">Damaged - Partially Working</option>
+                                                        <option value="SCRAP">Scrap - Not Working</option>
+                                                    </select>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="form-group">
-                                                <label class="form-label">Notes (Optional)</label>
-                                                <textarea class="form-control notes" name="notes[]" rows="2" placeholder="Any special information about this item"></textarea>
+                                            <div class="col-12">
+                                                <div class="form-group">
+                                                    <label class="form-label">Notes (Optional)</label>
+                                                    <textarea class="form-control notes" name="notes[]" rows="2" placeholder="Any special information about this item"></textarea>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="col-12 text-end">
-                                            <button type="button" class="btn btn-sm btn-outline-danger remove-item">
-                                                <i class="fas fa-trash-alt"></i> Remove
-                                            </button>
+                                            <div class="col-12 text-end">
+                                                <button type="button" class="btn btn-sm btn-outline-danger remove-item">
+                                                    <i class="fas fa-trash-alt"></i> Remove
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -340,36 +359,36 @@
                         <li class="list-group-item d-flex align-items-center">
                             <i class="fas fa-check-circle text-success me-3 fs-4"></i>
                             <div>
-                                <strong>Official Documentation</strong>
-                                <div class="text-muted small">Disposal certificates for regulatory compliance</div>
+                                <strong>Convenient Scheduling</strong>
+                                <div class="text-muted small">Choose your preferred date and time</div>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center">
+                            <i class="fas fa-check-circle text-success me-3 fs-4"></i>
+                            <div>
+                                <strong>Environmental Impact</strong>
+                                <div class="text-muted small">Detailed report on carbon footprint saved</div>
                             </div>
                         </li>
                         <li class="list-group-item d-flex align-items-center">
                             <i class="fas fa-check-circle text-success me-3 fs-4"></i>
                             <div>
                                 <strong>Tax Benefits</strong>
-                                <div class="text-muted small">Receipts for tax-deductible e-waste donations</div>
+                                <div class="text-muted small">Tax-deductible donation receipts available</div>
                             </div>
                         </li>
                         <li class="list-group-item d-flex align-items-center">
                             <i class="fas fa-check-circle text-success me-3 fs-4"></i>
                             <div>
-                                <strong>Eco Points</strong>
-                                <div class="text-muted small">Earn eco points for your organization</div>
-                            </div>
-                        </li>
-                        <li class="list-group-item d-flex align-items-center">
-                            <i class="fas fa-check-circle text-success me-3 fs-4"></i>
-                            <div>
-                                <strong>Environmental Impact Report</strong>
-                                <div class="text-muted small">Detailed report on your sustainability contribution</div>
+                                <strong>Certification</strong>
+                                <div class="text-muted small">Official disposal certificate for compliance</div>
                             </div>
                         </li>
                     </ul>
-                    <hr>
-                    <div class="alert alert-info mb-0">
-                        <i class="fas fa-lightbulb me-2"></i>
-                        <strong>Need help?</strong> Contact our bulk pickup team at <a href="mailto:bulk@ecycle.com">bulk@ecycle.com</a> or call (123) 456-7890.
+                    
+                    <div class="alert alert-info mt-4">
+                        <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Minimum Requirements</h6>
+                        <p class="small mb-0">Bulk pickup is available for organizations with 5 or more e-waste items or special handling requirements. Individual users with fewer items can use our <a href="{{ url_for('schedule') }}">standard pickup service</a>.</p>
                     </div>
                 </div>
             </div>
@@ -381,43 +400,55 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Clone template to create initial item
-        const itemTemplate = document.getElementById('item-template');
         const itemsContainer = document.getElementById('itemsContainer');
+        const addItemBtn = document.getElementById('addItemBtn');
         
-        // Remove template ID to avoid duplicates
-        itemTemplate.removeAttribute('id');
-        
-        // Add item button functionality
-        document.getElementById('addItemBtn').addEventListener('click', function() {
-            const newItem = itemTemplate.cloneNode(true);
+        // Add new item
+        addItemBtn.addEventListener('click', function() {
+            const newItem = document.querySelector('.e-waste-item').cloneNode(true);
+            const itemCount = document.querySelectorAll('.e-waste-item').length + 1;
+            
+            newItem.querySelector('.item-title').textContent = `Item #${itemCount}`;
+            
+            // Clear values
+            newItem.querySelector('.ewaste-type').value = '';
+            newItem.querySelector('.brand-model').value = '';
+            newItem.querySelector('.quantity').value = '1';
+            newItem.querySelector('.condition').value = 'WORKING';
+            newItem.querySelector('.notes').value = '';
+            
             itemsContainer.appendChild(newItem);
             
-            // Add event listener to remove button
-            newItem.querySelector('.remove-item').addEventListener('click', function() {
-                newItem.remove();
-            });
+            // Activate remove button
+            activateRemoveButtons();
         });
         
-        // Add event listener to the initial template's remove button
-        itemTemplate.querySelector('.remove-item').addEventListener('click', function() {
-            if (itemsContainer.children.length > 1) {
-                itemTemplate.remove();
-            } else {
-                alert('You need at least one item.');
-            }
-        });
+        // Setup remove functionality for initial item
+        activateRemoveButtons();
         
-        // Form validation
-        const form = document.getElementById('bulkPickupForm');
-        form.addEventListener('submit', function(event) {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
+        function activateRemoveButtons() {
+            const removeButtons = document.querySelectorAll('.remove-item');
             
-            form.classList.add('was-validated');
-        });
+            removeButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const itemContainer = this.closest('.e-waste-item');
+                    const allItems = document.querySelectorAll('.e-waste-item');
+                    
+                    // Only remove if there's more than one item
+                    if (allItems.length > 1) {
+                        itemContainer.remove();
+                        
+                        // Update item numbers
+                        const remainingItems = document.querySelectorAll('.e-waste-item');
+                        remainingItems.forEach((item, index) => {
+                            item.querySelector('.item-title').textContent = `Item #${index + 1}`;
+                        });
+                    } else {
+                        alert('At least one item is required.');
+                    }
+                });
+            });
+        }
     });
 </script>
 {% endblock %}
