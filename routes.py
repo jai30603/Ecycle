@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from app import app, db
 from models import User, Admin, Ewaste, Schedule, Reward, Redemption
-from utils import get_ewaste_news, calculate_carbon_footprint
+from utils import get_ewaste_news, calculate_carbon_footprint, generate_disposal_certificate
 from api import classify_image
 from forms import LoginForm, RegisterForm, ScheduleForm, AdminLoginForm, RewardForm
 
@@ -1016,7 +1016,6 @@ def download_certificate(pickup_id):
     
     # Generate the certificate PDF
     try:
-        from utils import generate_disposal_certificate
         pdf_buffer = generate_disposal_certificate(user, ewaste, pickup)
         
         # Prepare the response with the PDF

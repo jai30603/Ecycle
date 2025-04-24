@@ -26,6 +26,7 @@
                             <th>Address</th>
                             <th>Points Earned</th>
                             <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -42,6 +43,15 @@
                                     <span class="badge {% if pickup.status == 'Pending' %}bg-warning text-dark{% else %}bg-success{% endif %}">
                                         {{ pickup.status }}
                                     </span>
+                                </td>
+                                <td>
+                                    {% if pickup.status == 'Collected' %}
+                                        <a href="{{ url_for('download_certificate', pickup_id=pickup.id) }}" class="btn btn-sm btn-success" title="Download Certificate">
+                                            <i class="fas fa-download me-1"></i> Certificate
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted small">Available after collection</span>
+                                    {% endif %}
                                 </td>
                             </tr>
                         {% endfor %}
