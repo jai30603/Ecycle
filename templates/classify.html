@@ -1,141 +1,94 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}Identify E-Waste - E-Waste Manager{% endblock %}
+{% block title %}Classify E-Waste{% endblock %}
 
 {% block content %}
 <div class="container py-5">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="mb-3">Identify Your E-Waste</h1>
-            <p class="lead">Upload a photo of your electronic waste and our AI will identify it for you</p>
-        </div>
-        <div class="col-md-4 text-md-end">
-            <a href="{{ url_for('schedule') }}" class="btn btn-success">
-                <i class="fas fa-calendar-plus me-2"></i> Schedule Pickup
-            </a>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-lg-6">
-            <!-- Image Upload and Classification -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h4 class="mb-0">Upload E-Waste Image</h4>
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">E-Waste Classification</h3>
                 </div>
                 <div class="card-body">
+                    <p class="mb-4">
+                        Upload a photo of your electronic waste item, and our AI will identify what type of e-waste it is.
+                        This helps us accurately categorize the item for proper recycling and provides you with information
+                        about how it will be recycled.
+                    </p>
+                    
                     <form id="upload-form" enctype="multipart/form-data">
-                        <div class="mb-3">
-                            <label for="image-input" class="form-label">Choose an image of your e-waste item</label>
-                            <input type="file" class="form-control" id="image-input" name="image" accept="image/*">
-                            <div class="form-text">Supported formats: JPG, PNG, WEBP (Max 5MB)</div>
+                        <div class="mb-4">
+                            <label for="image-input" class="form-label fw-bold">Upload Image</label>
+                            <input type="file" class="form-control" id="image-input" name="image" accept="image/*" required>
+                            <div class="form-text">Supported formats: JPG, PNG, JPEG</div>
                         </div>
                         
-                        <div id="preview-container" style="display: none;" class="preview-container mb-3">
-                            <img id="preview-image" src="#" alt="Preview" class="img-fluid rounded">
+                        <div id="preview-container" class="mb-4 text-center" style="display: none;">
+                            <div class="card">
+                                <div class="card-header">Image Preview</div>
+                                <div class="card-body">
+                                    <img id="preview-image" class="img-fluid rounded" style="max-height: 300px;" alt="Preview">
+                                </div>
+                            </div>
                         </div>
                         
                         <div class="d-grid">
                             <button type="submit" id="classify-button" class="btn btn-success" disabled>
-                                <i class="fas fa-camera me-2"></i> Identify E-Waste
+                                <i class="fas fa-search me-2"></i> Identify E-Waste
                             </button>
                         </div>
                     </form>
                     
                     <div id="loading-spinner" class="text-center my-4" style="display: none;">
-                        <div class="loading-spinner"></div>
-                        <p class="mt-3">Analyzing your image...</p>
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Analyzing your e-waste item...</p>
                     </div>
                     
-                    <div id="result-container" class="mt-4" style="display: none;"></div>
+                    <div id="result-container" class="mt-4" style="display: none;">
+                        <!-- Results will be shown here via JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">Using Roboflow AI for classification</small>
+                        <a href="/learn" class="btn btn-sm btn-outline-info">Learn about e-waste</a>
+                    </div>
                 </div>
             </div>
             
-            <!-- Tips for Better Results -->
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">Tips for Best Results</h4>
-                </div>
-                <div class="card-body">
-                    <ul class="mb-0">
-                        <li>Ensure good lighting for clear visibility</li>
-                        <li>Place the item against a plain background</li>
-                        <li>Capture the entire item in the frame</li>
-                        <li>Avoid blurry images for better recognition</li>
-                        <li>If possible, remove any packaging or covers</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-6">
-            <!-- Classification Information -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h4 class="mb-0">About E-Waste Classification</h4>
-                </div>
-                <div class="card-body">
-                    <p>Our advanced AI can recognize over 70 different types of electronic waste, including:</p>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <ul>
-                                <li>Computers & Laptops</li>
-                                <li>Smartphones & Tablets</li>
-                                <li>Monitors & TVs</li>
-                                <li>Home Appliances</li>
-                                <li>Computer Peripherals</li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <ul>
-                                <li>Audio Equipment</li>
-                                <li>Gaming Consoles</li>
-                                <li>Batteries</li>
-                                <li>Circuit Boards</li>
-                                <li>Many other devices</li>
-                            </ul>
-                        </div>
+            <div class="mt-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Why Classify Your E-Waste?</h5>
                     </div>
-                    
-                    <p class="mb-0">After classification, you can use the detected e-waste type to schedule a pickup and earn eco-points based on the device type.</p>
-                </div>
-            </div>
-            
-            <!-- Next Steps -->
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">What's Next?</h4>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex mb-3">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-camera fa-2x text-success me-3"></i>
-                        </div>
-                        <div>
-                            <h5>1. Identify</h5>
-                            <p>Upload an image to identify your e-waste item</p>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex mb-3">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-calendar-check fa-2x text-success me-3"></i>
-                        </div>
-                        <div>
-                            <h5>2. Schedule</h5>
-                            <p>Use the identified e-waste type to schedule a pickup</p>
-                        </div>
-                    </div>
-                    
-                    <div class="d-flex">
-                        <div class="flex-shrink-0">
-                            <i class="fas fa-leaf fa-2x text-success me-3"></i>
-                        </div>
-                        <div>
-                            <h5>3. Earn</h5>
-                            <p>Receive eco-points based on your recycled items</p>
-                        </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex">
+                                <div class="me-3 text-success"><i class="fas fa-recycle fa-2x"></i></div>
+                                <div>
+                                    <h6>Proper Recycling</h6>
+                                    <p class="mb-0">Accurate classification ensures your e-waste is recycled using the most appropriate method.</p>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex">
+                                <div class="me-3 text-primary"><i class="fas fa-coins fa-2x"></i></div>
+                                <div>
+                                    <h6>Fair Valuation</h6>
+                                    <p class="mb-0">Different e-waste items have different recovery values. Proper identification helps ensure you get appropriate eco-points.</p>
+                                </div>
+                            </li>
+                            <li class="list-group-item d-flex">
+                                <div class="me-3 text-info"><i class="fas fa-leaf fa-2x"></i></div>
+                                <div>
+                                    <h6>Environmental Impact</h6>
+                                    <p class="mb-0">Learn the specific environmental impact of recycling your particular device.</p>
+                                </div>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -144,6 +97,6 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_js %}
 <script src="{{ url_for('static', filename='js/classification.js') }}"></script>
 {% endblock %}

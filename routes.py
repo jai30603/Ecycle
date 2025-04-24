@@ -277,8 +277,16 @@ def schedule():
     return render_template('schedule.html', form=form)
 
 # Upload image for classification
-@app.route('/classify', methods=['POST'])
+@app.route('/classify', methods=['GET', 'POST'])
 def classify():
+    # For GET requests, show the classify page
+    if request.method == 'GET':
+        if 'user_id' not in session:
+            flash('Please log in to use the classification feature', 'warning')
+            return redirect(url_for('login'))
+        return render_template('classify.html')
+    
+    # For POST requests, handle image classification
     if 'user_id' not in session:
         return jsonify({'error': 'Not logged in'}), 401
     
