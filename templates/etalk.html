@@ -96,29 +96,38 @@
                     
                     <!-- Message Form -->
                     <div class="message-form mt-4" id="message-form">
-                        <form id="post-form" method="POST" action="{{ url_for('post_message') }}">
-                            {{ form.csrf_token }}
+                        <div id="message-input-container">
+                            <input type="hidden" id="csrf_token" value="{{ form.csrf_token._value() }}">
                             <div class="mb-3">
-                                {{ form.content(class="form-control", rows=3, placeholder="Share your thoughts about e-waste recycling...", maxlength=500) }}
+                                <textarea id="message-content" class="form-control" rows="3" 
+                                    placeholder="Share your thoughts about e-waste recycling..." 
+                                    maxlength="500"></textarea>
                                 <div class="form-text text-end" id="char-count">0/500</div>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <button type="submit" class="btn btn-success" id="submit-btn">
+                                <button type="button" class="btn btn-success" id="submit-btn" onclick="submitMessage()">
                                     <i class="fas fa-paper-plane me-2"></i> Post Message
                                 </button>
                                 <div class="form-text">
                                     <i class="fas fa-info-circle me-1"></i> Messages are public and visible to all users
                                 </div>
                             </div>
-                            <div class="mt-2 d-none" id="posting-spinner">
-                                <div class="d-flex align-items-center text-success">
-                                    <div class="spinner-border spinner-border-sm me-2" role="status">
-                                        <span class="visually-hidden">Loading...</span>
-                                    </div>
-                                    <span>Posting your message...</span>
+                        </div>
+                        <div class="mt-2 d-none" id="posting-spinner">
+                            <div class="d-flex align-items-center text-success">
+                                <div class="spinner-border spinner-border-sm me-2" role="status">
+                                    <span class="visually-hidden">Loading...</span>
                                 </div>
+                                <span>Posting your message...</span>
                             </div>
-                        </form>
+                        </div>
+                        <div class="alert alert-success mt-2 d-none" id="success-alert">
+                            <i class="fas fa-check-circle me-2"></i> Your message has been posted successfully!
+                        </div>
+                        <div class="alert alert-danger mt-2 d-none" id="error-alert">
+                            <i class="fas fa-exclamation-circle me-2"></i> 
+                            <span id="error-message">Error posting message.</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -129,17 +138,22 @@
 
 {% block extra_js %}
 <script>
+    let lastTimestamp = 0;
+    let isSubmitting = false;
+
     document.addEventListener('DOMContentLoaded', function() {
         const messageContainer = document.getElementById('message-container');
-        const postForm = document.getElementById('post-form');
-        const contentField = document.getElementById('content');
+        const messageContent = document.getElementById('message-content');
         const charCount = document.getElementById('char-count');
         const messageCountBadge = document.getElementById('message-count');
-        
-        let lastTimestamp = 0;
+        const submitBtn = document.getElementById('submit-btn');
+        const postingSpinner = document.getElementById('posting-spinner');
+        const successAlert = document.getElementById('success-alert');
+        const errorAlert = document.getElementById('error-alert');
+        const errorMessage = document.getElementById('error-message');
         
         // Character counter
-        contentField.addEventListener('input', function() {
+        messageContent.addEventListener('input', function() {
             const length = this.value.length;
             charCount.textContent = `${length}/500`;
             
@@ -150,65 +164,10 @@
             }
         });
         
-        // Submit form via AJAX
-        const submitBtn = document.getElementById('submit-btn');
-        const postingSpinner = document.getElementById('posting-spinner');
-        
-        postForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            if (contentField.value.trim() === '') {
-                return;
-            }
-            
-            // Disable submit button and show spinner
-            submitBtn.disabled = true;
-            postingSpinner.classList.remove('d-none');
-            
-            const formData = new FormData(this);
-            
-            fetch('{{ url_for("post_message") }}', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Re-enable submit button and hide spinner
-                submitBtn.disabled = false;
-                postingSpinner.classList.add('d-none');
-                
-                if (data.success) {
-                    // Clear the form
-                    contentField.value = '';
-                    charCount.textContent = '0/500';
-                    
-                    // Add the new message to the top
-                    addMessageToDOM(data.message, true);
-                    
-                    // Update the message count
-                    updateMessageCount(1);
-                    
-                    // Scroll to the top
-                    messageContainer.scrollTop = 0;
-                } else {
-                    alert('Error posting message: ' + JSON.stringify(data.errors));
-                }
-            })
-            .catch(error => {
-                // Re-enable submit button and hide spinner
-                submitBtn.disabled = false;
-                postingSpinner.classList.add('d-none');
-                
-                console.error('Error:', error);
-                alert('An error occurred while posting your message.');
-            });
-        });
-        
         // Poll for new messages every 10 seconds
         function pollNewMessages() {
+            if (isSubmitting) return; // Skip polling if we're submitting a message
+            
             // Find the newest message timestamp
             const messages = document.querySelectorAll('.message-bubble');
             if (messages.length > 0) {
@@ -255,7 +214,7 @@
         setTimeout(pollNewMessages, 10000);
         
         // Function to add a message to the DOM
-        function addMessageToDOM(message, prepend = false) {
+        window.addMessageToDOM = function(message, prepend = false) {
             const messageElement = document.createElement('div');
             messageElement.className = 'message-bubble bg-secondary bg-opacity-25';
             messageElement.dataset.messageId = message.id;
@@ -291,11 +250,108 @@
         }
         
         // Function to update the message count badge
-        function updateMessageCount(delta) {
-            const count = parseInt(messageCountBadge.textContent) + delta;
-            messageCountBadge.textContent = `${count} messages`;
+        window.updateMessageCount = function(delta) {
+            const currentText = messageCountBadge.textContent;
+            const currentCount = parseInt(currentText);
+            const newCount = currentCount + delta;
+            messageCountBadge.textContent = `${newCount} messages`;
         }
     });
+    
+    // Submit message function
+    function submitMessage() {
+        if (isSubmitting) return; // Prevent double submission
+        
+        const messageContent = document.getElementById('message-content');
+        const submitBtn = document.getElementById('submit-btn');
+        const postingSpinner = document.getElementById('posting-spinner');
+        const successAlert = document.getElementById('success-alert');
+        const errorAlert = document.getElementById('error-alert');
+        const errorMessage = document.getElementById('error-message');
+        const messageContainer = document.getElementById('message-container');
+        const csrfToken = document.getElementById('csrf_token').value;
+        
+        // Validate content
+        if (messageContent.value.trim() === '') {
+            errorMessage.textContent = 'Please enter a message.';
+            errorAlert.classList.remove('d-none');
+            setTimeout(() => {
+                errorAlert.classList.add('d-none');
+            }, 3000);
+            return;
+        }
+        
+        // Hide any previous alerts
+        successAlert.classList.add('d-none');
+        errorAlert.classList.add('d-none');
+        
+        // Disable submit button and show spinner
+        isSubmitting = true;
+        submitBtn.disabled = true;
+        postingSpinner.classList.remove('d-none');
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('csrf_token', csrfToken);
+        formData.append('content', messageContent.value);
+        
+        // Send AJAX request
+        fetch('{{ url_for("post_message") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Re-enable submit button and hide spinner
+            submitBtn.disabled = false;
+            postingSpinner.classList.add('d-none');
+            isSubmitting = false;
+            
+            if (data.success) {
+                // Clear the textarea
+                messageContent.value = '';
+                document.getElementById('char-count').textContent = '0/500';
+                
+                // Show success message
+                successAlert.classList.remove('d-none');
+                setTimeout(() => {
+                    successAlert.classList.add('d-none');
+                }, 3000);
+                
+                // Add the message to the message container
+                addMessageToDOM(data.message, true);
+                
+                // Update the message count
+                updateMessageCount(1);
+                
+                // Scroll to the top of the message container
+                messageContainer.scrollTop = 0;
+            } else {
+                // Show error message
+                errorMessage.textContent = data.errors?.content || 'Failed to post message.';
+                errorAlert.classList.remove('d-none');
+            }
+        })
+        .catch(error => {
+            // Re-enable submit button and hide spinner
+            submitBtn.disabled = false;
+            postingSpinner.classList.add('d-none');
+            isSubmitting = false;
+            
+            // Show error message
+            console.error('Error:', error);
+            errorMessage.textContent = 'An error occurred while posting your message.';
+            errorAlert.classList.remove('d-none');
+        });
+    }
     
     // Function to delete a message
     function deleteMessage(messageId) {
@@ -320,8 +376,9 @@
                     
                     // Update the message count
                     const messageCountBadge = document.getElementById('message-count');
-                    const count = parseInt(messageCountBadge.textContent) - 1;
-                    messageCountBadge.textContent = `${count} messages`;
+                    const currentText = messageCountBadge.textContent;
+                    const currentCount = parseInt(currentText);
+                    messageCountBadge.textContent = `${currentCount - 1} messages`;
                 }
             } else {
                 alert('Error deleting message: ' + data.error);
