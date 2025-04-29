@@ -50,6 +50,7 @@
             {% if rewards %}
                 <div class="row g-4">
                     {% for reward in rewards %}
+                        {% if reward.stock > 0 %}
                         <div class="col-md-4 mb-4">
                             <div class="reward-card h-100">
                                 <div class="card-body">
@@ -65,10 +66,12 @@
                                 </div>
                                 <div class="card-footer">
                                     {% if user.eco_points >= reward.points_required %}
-                                        <a href="{{ url_for('redeem_reward', reward_id=reward.id) }}" class="btn btn-success w-100" 
-                                           onclick="return confirm('Are you sure you want to redeem this reward for {{ reward.points_required }} points?');">
-                                            <i class="fas fa-gift me-2"></i> Redeem Reward
-                                        </a>
+                                        <form action="{{ url_for('redeem_reward', reward_id=reward.id) }}" method="post">
+                                            <button type="submit" class="btn btn-success w-100" 
+                                                onclick="return confirm('Are you sure you want to redeem this reward for {{ reward.points_required }} points? Your points balance will be reduced by this amount.');">
+                                                <i class="fas fa-gift me-2"></i> Redeem Reward
+                                            </button>
+                                        </form>
                                     {% else %}
                                         <button class="btn btn-outline-secondary w-100" disabled>
                                             <i class="fas fa-lock me-2"></i> Need {{ reward.points_required - user.eco_points }} more points
@@ -77,6 +80,7 @@
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
             {% else %}

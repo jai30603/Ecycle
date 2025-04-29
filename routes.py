@@ -983,9 +983,17 @@ def redeem_reward(reward_id):
         flash('Please login to redeem rewards.', 'warning')
         return redirect(url_for('login'))
     
+    # Make sure this is a POST request
+    if request.method != 'POST':
+        flash('Invalid redemption method.', 'danger')
+        return redirect(url_for('rewards'))
+    
     user_id = session['user_id']
     user = User.query.get(user_id)
     reward = Reward.query.get_or_404(reward_id)
+    
+    # Log the redemption attempt
+    app.logger.debug(f"Redemption attempt: User ID {user_id}, Reward ID {reward_id}, User Points {user.eco_points}, Reward Points {reward.points_required}, Stock {reward.stock}")
     
     # Check if reward is active and in stock
     if not reward.active:
@@ -1001,25 +1009,33 @@ def redeem_reward(reward_id):
         flash(f'You need {reward.points_required - user.eco_points} more eco points for this reward.', 'danger')
         return redirect(url_for('rewards'))
     
-    # Process redemption
-    redemption = Redemption(
-        user_id=user_id,
-        reward_id=reward_id,
-        points_spent=reward.points_required,
-        status='Pending'
-    )
+    try:
+        # Process redemption
+        redemption = Redemption(
+            user_id=user_id,
+            reward_id=reward_id,
+            points_spent=reward.points_required,
+            status='Pending'
+        )
+        
+        # Deduct points and update stock
+        user.eco_points -= reward.points_required
+        reward.stock -= 1
+        
+        # Add to session and commit transaction
+        db.session.add(redemption)
+        db.session.commit()
+        
+        # Update session eco points
+        session['eco_points'] = user.eco_points
+        
+        app.logger.info(f"Redemption successful: User {user.username} redeemed {reward.name} for {reward.points_required} points")
+        flash(f'You have successfully redeemed the {reward.name}!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Redemption error: {str(e)}")
+        flash('An error occurred while processing your redemption. Please try again.', 'danger')
     
-    # Deduct points and update stock
-    user.eco_points -= reward.points_required
-    reward.stock -= 1
-    
-    db.session.add(redemption)
-    db.session.commit()
-    
-    # Update session eco points
-    session['eco_points'] = user.eco_points
-    
-    flash(f'You have successfully redeemed the {reward.name}!', 'success')
     return redirect(url_for('rewards'))
 
 # Admin login
