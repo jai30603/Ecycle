@@ -1558,6 +1558,16 @@ def admin_update_reward(reward_id):
         return redirect(url_for('admin_login'))
     
     reward = Reward.query.get_or_404(reward_id)
+    
+    # Check if this is a toggle request from the URL
+    if request.args.get('toggle'):
+        reward.active = not reward.active
+        db.session.commit()
+        status = 'activated' if reward.active else 'deactivated'
+        flash(f'Reward {status} successfully.', 'success')
+        return redirect(url_for('admin_rewards'))
+    
+    # Otherwise, check for form action
     action = request.form.get('action')
     
     if action == 'toggle_active':
