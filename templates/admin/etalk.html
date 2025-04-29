@@ -496,7 +496,8 @@
             return;
         }
         
-        fetch(`{{ url_for('delete_message', message_id='MESSAGE_ID') }}`.replace('MESSAGE_ID', messageId), {
+        const deleteUrl = '/etalk/message/' + messageId + '/delete';
+        fetch(deleteUrl, {
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
