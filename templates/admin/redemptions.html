@@ -143,11 +143,13 @@
                 {% endfor %}
                 
                 <ul class="list-group list-group-flush">
-                    {% for reward, count in reward_counts|dictsort(by='value', reverse=true)[:5] %}
+                    {% for reward, count in reward_counts|dictsort(by='value', reverse=true) %}
+                        {% if loop.index <= 5 %}
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             {{ reward }}
                             <span class="badge bg-info">{{ count }}</span>
                         </li>
+                        {% endif %}
                     {% endfor %}
                 </ul>
             </div>
