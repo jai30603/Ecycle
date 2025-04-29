@@ -51,6 +51,11 @@
                         <i class="fas fa-boxes fa-fw me-2"></i> Bulk Pickups
                     </a>
                 </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <a href="{{ url_for('admin_etalk') }}" class="btn btn-outline-warning d-block border-2">
+                        <i class="fas fa-crown fa-fw me-2"></i> E-Talk Admin
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -236,6 +241,11 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="rewards-tab" data-bs-toggle="tab" data-bs-target="#rewards" type="button" role="tab" aria-controls="rewards" aria-selected="false">
                                 <i class="fas fa-gift me-1"></i> Rewards
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="etalk-tab" data-bs-toggle="tab" data-bs-target="#etalk" type="button" role="tab" aria-controls="etalk" aria-selected="false">
+                                <i class="fas fa-crown me-1 text-warning"></i> E-Talk
                             </button>
                         </li>
                     </ul>
@@ -425,6 +435,33 @@
                                     <i class="fas fa-arrow-right me-2"></i>
                                     Go to Rewards Management
                                 </a>
+                            </div>
+                        </div>
+                        
+                        <!-- E-Talk Tab -->
+                        <div class="tab-pane fade" id="etalk" role="tabpanel" aria-labelledby="etalk-tab">
+                            <div class="text-center py-4">
+                                <div class="mb-4">
+                                    <i class="fas fa-crown fa-3x text-warning mb-3"></i>
+                                    <h5 class="fw-bold">E-Talk Community Board</h5>
+                                    <p>Post special admin messages to the community with golden highlights</p>
+                                </div>
+                                <a href="{{ url_for('admin_etalk') }}" class="btn btn-warning">
+                                    <i class="fas fa-comment-dots me-2"></i>
+                                    Go to E-Talk Admin
+                                </a>
+                                
+                                <div class="card mt-4 border border-warning">
+                                    <div class="card-header bg-warning bg-opacity-10">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-lightbulb me-2 text-warning"></i>
+                                            Admin Messages Feature
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-0">Admin messages appear with a special golden highlight in the community board, making them stand out as official communications. Use this feature for important announcements and community guidelines.</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
