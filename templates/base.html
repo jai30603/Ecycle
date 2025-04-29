@@ -14,15 +14,20 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top" style="background: linear-gradient(to right, rgba(33, 37, 41, 0.98), rgba(33, 37, 41, 0.95)); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
-                <i class="fas fa-recycle text-info me-2"></i>
-                <span>Ecycle</span>
+                <div class="brand-icon me-2 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #2ecc71, #27ae60); width: 36px; height: 36px; border-radius: 10px;">
+                    <i class="fas fa-recycle text-white"></i>
+                </div>
+                <span style="font-weight: 700; letter-spacing: 0.5px;">ECYCLE</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -30,93 +35,115 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                        <a class="nav-link px-3" href="{{ url_for('index') }}">
+                            <i class="fas fa-home me-1"></i> Home
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('learn') }}">Learn</a>
+                        <a class="nav-link px-3" href="{{ url_for('learn') }}">
+                            <i class="fas fa-book-open me-1"></i> Learn
+                        </a>
                     </li>
                     {% if 'user_id' in session %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                        <a class="nav-link px-3" href="{{ url_for('dashboard') }}">
+                            <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                        </a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="pickupDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Schedule Pickup
+                        <a class="nav-link dropdown-toggle px-3" href="#" id="pickupDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-truck me-1"></i> Schedule Pickup
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="pickupDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('schedule') }}">Individual Pickup</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('bulk_pickup') }}">Organization Bulk Pickup</a></li>
+                        <ul class="dropdown-menu" aria-labelledby="pickupDropdown" style="border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.25);">
+                            <li><a class="dropdown-item" href="{{ url_for('schedule') }}"><i class="fas fa-user me-2 text-primary"></i> Individual Pickup</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('bulk_pickup') }}"><i class="fas fa-building me-2 text-success"></i> Organization Bulk Pickup</a></li>
                         </ul>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('history') }}">History</a>
+                        <a class="nav-link px-3" href="{{ url_for('history') }}">
+                            <i class="fas fa-history me-1"></i> History
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('certificates') }}">Certificates</a>
+                        <a class="nav-link px-3" href="{{ url_for('certificates') }}">
+                            <i class="fas fa-certificate me-1"></i> Certificates
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('rewards') }}">Rewards</a>
+                        <a class="nav-link px-3" href="{{ url_for('rewards') }}">
+                            <i class="fas fa-gift me-1"></i> Rewards
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('etalk') }}">
+                        <a class="nav-link px-3" href="{{ url_for('etalk') }}">
                             <i class="fas fa-comments text-success me-1"></i> E-Talk
                         </a>
                     </li>
                     {% endif %}
                     {% if 'admin_id' in session %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Admin
+                        <a class="nav-link dropdown-toggle px-3" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-shield me-1"></i> Admin
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="adminDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin_users') }}">Users</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin_pickups') }}">Individual Pickups</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin_bulk_pickups') }}">Bulk Pickups</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin_inventory') }}">Inventory</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin_rewards') }}">Rewards</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('admin_redemptions') }}">Redemptions</a></li>
+                        <ul class="dropdown-menu" aria-labelledby="adminDropdown" style="border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.25);">
+                            <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}"><i class="fas fa-tachometer-alt me-2 text-primary"></i> Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_users') }}"><i class="fas fa-users me-2 text-info"></i> Users</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_pickups') }}"><i class="fas fa-truck me-2 text-success"></i> Individual Pickups</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_bulk_pickups') }}"><i class="fas fa-building me-2 text-warning"></i> Bulk Pickups</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_inventory') }}"><i class="fas fa-box me-2 text-danger"></i> Inventory</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_rewards') }}"><i class="fas fa-gift me-2 text-primary"></i> Rewards</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_redemptions') }}"><i class="fas fa-exchange-alt me-2 text-success"></i> Redemptions</a></li>
                         </ul>
                     </li>
                     {% endif %}
                 </ul>
                 <ul class="navbar-nav">
                     {% if 'user_id' in session %}
-                    <li class="nav-item">
-                        <span class="nav-link eco-points-badge" id="ecoPointsDisplay" data-points="{{ session.get('eco_points', 0) }}">
-                            {{ session.get('eco_points', 0) }}
-                        </span>
+                    <li class="nav-item me-3">
+                        <div style="background: linear-gradient(135deg, #2ecc71, #27ae60); border-radius: 50px; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); padding: 5px 15px;" class="d-flex align-items-center">
+                            <i class="fas fa-leaf text-white me-2"></i>
+                            <span class="text-white" id="ecoPointsDisplay" data-points="{{ session.get('eco_points', 0) }}">
+                                {{ session.get('eco_points', 0) }}
+                            </span>
+                        </div>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user-circle me-1"></i>{{ session.get('username', 'User') }}
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div style="background: rgba(255, 255, 255, 0.1); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;" class="me-2">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <span>{{ session.get('username', 'User') }}</span>
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('dashboard') }}">Dashboard</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('history') }}">My Pickups</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('certificates') }}">My Certificates</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('rewards') }}">My Rewards</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown" style="border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.25);">
+                            <li><a class="dropdown-item" href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt me-2 text-primary"></i> Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('history') }}"><i class="fas fa-history me-2 text-info"></i> My Pickups</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('certificates') }}"><i class="fas fa-certificate me-2 text-success"></i> My Certificates</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('rewards') }}"><i class="fas fa-gift me-2 text-warning"></i> My Rewards</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('logout') }}">Logout</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2 text-danger"></i> Logout</a></li>
                         </ul>
                     </li>
                     {% elif 'admin_id' in session %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logout') }}">
-                            <i class="fas fa-sign-out-alt me-1"></i>Logout
+                        <a class="nav-link btn btn-outline-danger btn-sm px-3" href="{{ url_for('logout') }}" style="border-radius: 50px;">
+                            <i class="fas fa-sign-out-alt me-1"></i> Logout
                         </a>
                     </li>
                     {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                    <li class="nav-item me-2">
+                        <a class="nav-link btn btn-outline-primary btn-sm px-3" href="{{ url_for('login') }}" style="border-radius: 50px;">
+                            <i class="fas fa-sign-in-alt me-1"></i> Login
+                        </a>
+                    </li>
+                    <li class="nav-item me-2">
+                        <a class="nav-link btn btn-primary btn-sm px-3" href="{{ url_for('register') }}" style="border-radius: 50px;">
+                            <i class="fas fa-user-plus me-1"></i> Register
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('register') }}">Register</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-info" href="{{ url_for('admin_login') }}">
-                            <i class="fas fa-user-shield me-1"></i>Admin
+                        <a class="nav-link btn btn-info btn-sm px-3" href="{{ url_for('admin_login') }}" style="border-radius: 50px;">
+                            <i class="fas fa-user-shield me-1"></i> Admin
                         </a>
                     </li>
                     {% endif %}
@@ -145,41 +172,102 @@
     </main>
 
     <!-- Footer -->
-    <footer class="footer">
+    <footer class="footer" style="background: linear-gradient(to right, rgba(26, 32, 36, 0.98), rgba(33, 37, 41, 0.95)); border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 4rem 0 2rem;">
         <div class="container">
-            <div class="row">
-                <div class="col-md-4">
-                    <h5>Ecycle</h5>
-                    <p>Making e-waste recycling easy and rewarding</p>
-                    <p><i class="fas fa-envelope me-2"></i>contact@ecycle.com</p>
-                    <p><i class="fas fa-phone me-2"></i>(123) 456-7890</p>
+            <div class="row gy-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="brand-icon me-2 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #2ecc71, #27ae60); width: 40px; height: 40px; border-radius: 10px;">
+                                <i class="fas fa-recycle text-white"></i>
+                            </div>
+                            <span style="font-weight: 700; letter-spacing: 0.5px; font-size: 1.5rem;">ECYCLE</span>
+                        </div>
+                        <p class="text-light mb-3" style="opacity: 0.8;">Making e-waste recycling easy, rewarding, and accessible to everyone. Join our mission for a cleaner planet.</p>
+                        <div class="d-flex gap-2 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="p-2 me-2 rounded-circle" style="background: rgba(255, 255, 255, 0.1);">
+                                    <i class="fas fa-envelope text-primary"></i>
+                                </div>
+                                <span class="text-light">contact@ecycle.com</span>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <div class="d-flex align-items-center">
+                                <div class="p-2 me-2 rounded-circle" style="background: rgba(255, 255, 255, 0.1);">
+                                    <i class="fas fa-phone text-success"></i>
+                                </div>
+                                <span class="text-light">(123) 456-7890</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <h5>Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="{{ url_for('index') }}" class="text-decoration-none">Home</a></li>
-                        <li><a href="{{ url_for('learn') }}" class="text-decoration-none">Learn About E-waste</a></li>
-                        <li><a href="{{ url_for('schedule') }}" class="text-decoration-none">Schedule Pickup</a></li>
-
-                        <li><a href="{{ url_for('rewards') }}" class="text-decoration-none">Rewards</a></li>
-                        <li><a href="{{ url_for('etalk') }}" class="text-decoration-none">E-Talk Community</a></li>
+                <div class="col-lg-2 col-md-6">
+                    <h5 class="text-white mb-4" style="position: relative; padding-bottom: 10px;">
+                        Quick Links
+                        <span style="position: absolute; bottom: 0; left: 0; width: 50px; height: 3px; background: linear-gradient(to right, var(--bs-primary), transparent);"></span>
+                    </h5>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2"><a href="{{ url_for('index') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-primary" style="font-size: 0.7rem;"></i>Home</a></li>
+                        <li class="mb-2"><a href="{{ url_for('learn') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-primary" style="font-size: 0.7rem;"></i>Learn About E-waste</a></li>
+                        <li class="mb-2"><a href="{{ url_for('schedule') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-primary" style="font-size: 0.7rem;"></i>Schedule Pickup</a></li>
+                        <li class="mb-2"><a href="{{ url_for('rewards') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-primary" style="font-size: 0.7rem;"></i>Rewards</a></li>
                     </ul>
                 </div>
-                <div class="col-md-4">
-                    <h5>Connect With Us</h5>
-                    <div class="d-flex gap-3 fs-4">
-                        <a href="#" class="text-info"><i class="fab fa-facebook"></i></a>
-                        <a href="#" class="text-info"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="text-info"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="text-info"><i class="fab fa-linkedin"></i></a>
+                <div class="col-lg-2 col-md-6">
+                    <h5 class="text-white mb-4" style="position: relative; padding-bottom: 10px;">
+                        Resources
+                        <span style="position: absolute; bottom: 0; left: 0; width: 50px; height: 3px; background: linear-gradient(to right, var(--bs-info), transparent);"></span>
+                    </h5>
+                    <ul class="list-unstyled footer-links">
+                        <li class="mb-2"><a href="{{ url_for('etalk') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-info" style="font-size: 0.7rem;"></i>E-Talk Community</a></li>
+                        <li class="mb-2"><a href="{{ url_for('certificates') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-info" style="font-size: 0.7rem;"></i>Certificates</a></li>
+                        <li class="mb-2"><a href="{{ url_for('history') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-info" style="font-size: 0.7rem;"></i>Pickup History</a></li>
+                        <li class="mb-2"><a href="{{ url_for('bulk_pickup') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-info" style="font-size: 0.7rem;"></i>Bulk Pickup</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <h5 class="text-white mb-4" style="position: relative; padding-bottom: 10px;">
+                        Connect With Us
+                        <span style="position: absolute; bottom: 0; left: 0; width: 50px; height: 3px; background: linear-gradient(to right, var(--bs-success), transparent);"></span>
+                    </h5>
+                    <div class="d-flex gap-3 mb-4">
+                        <a href="#" class="social-icon" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(39, 174, 96, 0.2)); color: var(--bs-primary); transition: all 0.3s;">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-icon" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(39, 174, 96, 0.2)); color: var(--bs-primary); transition: all 0.3s;">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-icon" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(39, 174, 96, 0.2)); color: var(--bs-primary); transition: all 0.3s;">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-icon" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(39, 174, 96, 0.2)); color: var(--bs-primary); transition: all 0.3s;">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
                     </div>
-                    <p class="mt-3">Subscribe to our newsletter for updates on e-waste management</p>
+                    <div class="newsletter-box p-3" style="background: rgba(255, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <h6 class="text-white mb-3">Subscribe to our newsletter</h6>
+                        <p class="text-light mb-3" style="opacity: 0.7; font-size: 0.9rem;">Get the latest updates on e-waste management and recycling initiatives.</p>
+                        <div class="input-group">
+                            <input type="email" class="form-control" placeholder="Your email address" style="border-radius: 50px 0 0 50px; padding-left: 20px; background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.1);">
+                            <button class="btn btn-primary" style="border-radius: 0 50px 50px 0; padding: 0 20px;">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <hr>
-            <div class="row">
-                <div class="col-12 text-center">
-                    <p class="mb-0">&copy; {{ now.year if now else 2025 }} Ecycle. All rights reserved.</p>
+            <hr style="opacity: 0.1; margin: 2rem 0;">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-md-0 text-light" style="opacity: 0.7;">&copy; {{ now.year if now else 2025 }} Ecycle. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="d-flex justify-content-md-end justify-content-center gap-3">
+                        <a href="#" class="text-light text-decoration-none" style="opacity: 0.7; font-size: 0.9rem;">Privacy Policy</a>
+                        <a href="#" class="text-light text-decoration-none" style="opacity: 0.7; font-size: 0.9rem;">Terms of Service</a>
+                        <a href="#" class="text-light text-decoration-none" style="opacity: 0.7; font-size: 0.9rem;">FAQ</a>
+                    </div>
                 </div>
             </div>
         </div>
