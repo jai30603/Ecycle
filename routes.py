@@ -963,8 +963,13 @@ def rewards():
     user_id = session['user_id']
     user = User.query.get(user_id)
     
+    # Get all rewards to check what's in the database
+    all_rewards = Reward.query.all()
+    app.logger.debug(f"All rewards: {[{r.id: r.name, 'active': r.active} for r in all_rewards]}")
+    
     # Get all active rewards
     available_rewards = Reward.query.filter_by(active=True).order_by(Reward.points_required).all()
+    app.logger.debug(f"Active rewards: {[{r.id: r.name, 'active': r.active} for r in available_rewards]}")
     
     # Get user's redemptions
     redemptions = Redemption.query.filter_by(user_id=user_id).order_by(Redemption.redeemed_at.desc()).all()
