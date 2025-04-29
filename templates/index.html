@@ -6,16 +6,26 @@
 <!-- Hero Section -->
 <section class="hero-section text-center">
     <div class="container">
-        <h1 class="display-4 fw-bold mb-4">Smart E-Waste Recycling Made Easy</h1>
-        <p class="lead mb-4">Schedule pickups, earn rewards, and help save the planet one device at a time</p>
-        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-            {% if 'user_id' in session %}
-            <a href="{{ url_for('schedule') }}" class="btn btn-primary btn-lg px-4 gap-3">Schedule Pickup</a>
-            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-lg px-4">My Dashboard</a>
-            {% else %}
-            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 gap-3">Get Started</a>
-            <a href="{{ url_for('learn') }}" class="btn btn-outline-light btn-lg px-4">Learn More</a>
-            {% endif %}
+        <div class="py-4 px-md-5" style="background-color: rgba(0,0,0,0.3); border-radius: 15px; backdrop-filter: blur(5px);">
+            <h1 class="display-4 fw-bold mb-4">Smart E-Waste Recycling Made Easy</h1>
+            <p class="lead mb-4">Schedule pickups, earn rewards, and help save the planet one device at a time</p>
+            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mt-5">
+                {% if 'user_id' in session %}
+                <a href="{{ url_for('schedule') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                    <i class="fas fa-recycle me-2"></i>Schedule Pickup
+                </a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-lg px-4">
+                    <i class="fas fa-tachometer-alt me-2"></i>My Dashboard
+                </a>
+                {% else %}
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 gap-3">
+                    <i class="fas fa-user-plus me-2"></i>Get Started
+                </a>
+                <a href="{{ url_for('learn') }}" class="btn btn-outline-light btn-lg px-4">
+                    <i class="fas fa-book me-2"></i>Learn More
+                </a>
+                {% endif %}
+            </div>
         </div>
     </div>
 </section>
