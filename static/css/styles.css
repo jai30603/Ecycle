@@ -1,5 +1,56 @@
 /* Custom styles for Ecycle */
 
+/* Override Bootstrap's primary and info colors with green theme */
+:root {
+    --bs-primary: #2ecc71 !important;
+    --bs-primary-rgb: 46, 204, 113 !important;
+    
+    --bs-info: #27ae60 !important;
+    --bs-info-rgb: 39, 174, 96 !important;
+    
+    --bs-link-color: #2ecc71 !important;
+    --bs-link-hover-color: #25a25a !important;
+}
+
+/* Override button styles */
+.btn-primary {
+    background-color: var(--bs-primary) !important;
+    border-color: var(--bs-primary) !important;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: #25a25a !important;
+    border-color: #25a25a !important;
+}
+
+.btn-info {
+    background-color: var(--bs-info) !important;
+    border-color: var(--bs-info) !important;
+}
+
+.btn-info:hover, .btn-info:focus {
+    background-color: #219652 !important;
+    border-color: #219652 !important;
+}
+
+.btn-outline-info {
+    color: var(--bs-info) !important;
+    border-color: var(--bs-info) !important;
+}
+
+.btn-outline-info:hover, .btn-outline-info:focus {
+    background-color: var(--bs-info) !important;
+    color: white !important;
+}
+
+.bg-info {
+    background-color: var(--bs-info) !important;
+}
+
+.text-info {
+    color: var(--bs-info) !important;
+}
+
 /* Override card background for dark theme */
 .card {
     border: none;
