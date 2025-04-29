@@ -1551,7 +1551,7 @@ def admin_rewards():
     return render_template('admin/rewards.html', rewards=rewards, form=form)
 
 # Admin update reward
-@app.route('/admin/rewards/<int:reward_id>/update', methods=['POST'])
+@app.route('/admin/rewards/<int:reward_id>/update', methods=['GET', 'POST'])
 def admin_update_reward(reward_id):
     if 'admin_id' not in session:
         flash('Please login as admin to update rewards.', 'warning')
@@ -1597,14 +1597,20 @@ def admin_redemptions():
     return render_template('admin/redemptions.html', redemptions=redemptions)
 
 # Admin update redemption status
-@app.route('/admin/redemptions/<int:redemption_id>/update', methods=['POST'])
+@app.route('/admin/redemptions/<int:redemption_id>/update', methods=['GET', 'POST'])
 def admin_update_redemption(redemption_id):
     if 'admin_id' not in session:
         flash('Please login as admin to update redemption status.', 'warning')
         return redirect(url_for('admin_login'))
     
     redemption = Redemption.query.get_or_404(redemption_id)
-    new_status = request.form.get('status')
+    
+    # Check for status in URL parameters (GET request)
+    if request.method == 'GET' and request.args.get('status'):
+        new_status = request.args.get('status')
+    else:
+        # Get status from form (POST request)
+        new_status = request.form.get('status')
     
     if new_status in ['Pending', 'Processed', 'Delivered']:
         redemption.status = new_status
@@ -1612,6 +1618,10 @@ def admin_update_redemption(redemption_id):
         flash(f'Redemption status updated to {new_status}.', 'success')
     else:
         flash('Invalid status.', 'danger')
+    
+    # Return to rewards page if this was called from there
+    if request.referrer and 'admin/rewards' in request.referrer:
+        return redirect(url_for('admin_rewards'))
     
     return redirect(url_for('admin_redemptions'))
 
