@@ -2031,3 +2031,57 @@ def delete_message(message_id):
     
     flash('Message deleted successfully.', 'success')
     return redirect(url_for('etalk'))
+
+@app.route('/admin/etalk', methods=['GET'])
+def admin_etalk():
+    """Admin interface for E-Talk community board"""
+    if 'admin_id' not in session:
+        flash('Please login as admin to access this page.', 'warning')
+        return redirect(url_for('admin_login'))
+        
+    form = MessageForm()
+    
+    # Get all messages ordered by newest first
+    messages = Message.query.order_by(Message.created_at.desc()).all()
+    
+    return render_template('admin/etalk.html', form=form, messages=messages)
+
+@app.route('/admin/etalk/post', methods=['POST'])
+def admin_post_message():
+    """Handle posting a new admin message to the E-Talk community board"""
+    if 'admin_id' not in session:
+        return jsonify({'success': False, 'error': 'Admin login required'}), 401
+    
+    form = MessageForm()
+    if form.validate_on_submit():
+        # Get a default user for admin posts (first user)
+        admin_user = User.query.first()
+        if not admin_user:
+            return jsonify({'success': False, 'error': 'No user found for admin post'}), 500
+            
+        content = form.content.data
+        
+        # Create and save the new message with admin flag
+        message = Message(user_id=admin_user.id, content=content, is_admin=True)
+        db.session.add(message)
+        db.session.commit()
+        
+        # Return JSON response for AJAX requests
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({
+                'success': True,
+                'message': message.to_dict()
+            })
+        
+        flash('Your admin message has been posted!', 'success')
+        return redirect(url_for('admin_etalk'))
+    
+    # If form validation fails, return errors
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({
+            'success': False,
+            'errors': form.errors
+        })
+    
+    flash('Error posting message. Please try again.', 'danger')
+    return redirect(url_for('admin_etalk'))
