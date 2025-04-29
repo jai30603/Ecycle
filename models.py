@@ -225,6 +225,7 @@ class Message(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_admin = db.Column(db.Boolean, default=False)
     
     # Relationship with user
     user = db.relationship('User', backref='messages', lazy=True)
@@ -236,5 +237,6 @@ class Message(db.Model):
             'username': self.user.username,
             'content': self.content,
             'created_at': self.created_at.strftime('%Y-%m-%d %H:%M'),
-            'timestamp': int(self.created_at.timestamp())
+            'timestamp': int(self.created_at.timestamp()),
+            'is_admin': self.is_admin
         }
