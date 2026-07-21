@@ -458,24 +458,48 @@ h1, h2, h3, h4, h5, h6 {
         height: 36px !important;
     }
 
-    /* Navbar Mobile Menu Adjustment */
+    /* Navbar Mobile Menu Adjustment (Dark & Light Theme) */
     .navbar .navbar-collapse {
-        background: rgba(18, 22, 25, 0.98);
         padding: 0.85rem;
-        border-radius: 12px;
-        margin-top: 0.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        margin-top: 0.65rem;
     }
     
     .navbar .nav-link {
-        padding: 0.55rem 0.5rem !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        padding: 0.65rem 0.75rem !important;
+        border-radius: 8px;
+    }
+
+    [data-bs-theme="dark"] .navbar .navbar-collapse {
+        background: rgba(22, 27, 32, 0.98) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6) !important;
+    }
+
+    [data-bs-theme="dark"] .navbar .nav-link {
+        color: #e2e8f0 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
     }
 
     [data-bs-theme="light"] .navbar .navbar-collapse {
         background: #ffffff !important;
         border: 1px solid #e2e8f0 !important;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
+        box-shadow: 0 15px 35px rgba(15, 23, 42, 0.12) !important;
+    }
+
+    [data-bs-theme="light"] .navbar .nav-link {
+        color: #0f172a !important;
+        border-bottom: 1px solid #f1f5f9 !important;
+    }
+
+    [data-bs-theme="light"] .navbar .nav-link:hover {
+        color: #059669 !important;
+        background-color: #f8fafc !important;
+    }
+
+    [data-bs-theme="light"] .navbar-toggler {
+        border-color: #cbd5e1 !important;
+        background-color: #f1f5f9 !important;
     }
 
     .impact-counter {
