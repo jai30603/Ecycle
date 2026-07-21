@@ -327,65 +327,177 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Mobile Devices (max-width: 768px) */
+/* Mobile Devices (max-width: 768px) - Mobile-Only Scale Down */
 @media (max-width: 768px) {
-    .hero-section {
-        padding: 4rem 1rem 3rem;
-        border-radius: 0 0 16px 16px;
+    /* Compact Container & Hero Layout */
+    .container {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
     }
-    
-    .hero-section .display-3 {
+
+    .hero-section {
+        padding: 1.5rem 0.5rem 1rem !important;
+    }
+
+    .hero-section .container > div,
+    div[style*="max-width: 950px"],
+    div[style*="max-width: 720px"] {
+        padding: 1.25rem 0.85rem !important;
+        border-radius: 16px !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    /* Compact Typography for Mobile Screens */
+    .display-1 {
         font-size: 2.1rem !important;
     }
     
+    .display-3 {
+        font-size: 1.65rem !important;
+        line-height: 1.25 !important;
+    }
+    
     .display-4 {
-        font-size: 1.8rem !important;
+        font-size: 1.5rem !important;
+        line-height: 1.25 !important;
     }
 
     .display-5 {
-        font-size: 1.6rem !important;
-    }
-    
-    /* Responsive Touch Targets */
-    .btn {
-        min-height: 44px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
+        font-size: 1.35rem !important;
     }
 
+    h1, .h1 {
+        font-size: 1.5rem !important;
+    }
+
+    h2, .h2 {
+        font-size: 1.3rem !important;
+    }
+
+    h3, .h3 {
+        font-size: 1.15rem !important;
+    }
+
+    h4, .h4 {
+        font-size: 1.05rem !important;
+    }
+
+    .lead {
+        font-size: 0.95rem !important;
+        line-height: 1.5 !important;
+        margin-bottom: 1rem !important;
+    }
+
+    p, span, label {
+        font-size: 0.9rem !important;
+    }
+
+    /* Mobile Buttons & Capsule Badges */
+    .btn-lg {
+        padding: 0.55rem 1rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    .btn {
+        min-height: 40px !important;
+        padding: 0.4rem 0.85rem !important;
+        font-size: 0.85rem !important;
+    }
+
+    .badge, div[class*="rounded-pill"] {
+        font-size: 0.72rem !important;
+        padding: 0.35rem 0.75rem !important;
+    }
+
+    /* Form Inputs & Cards */
     .form-control, .form-select {
-        font-size: 16px !important; /* Prevents iOS auto-zoom on input focus */
-        min-height: 44px;
+        font-size: 15px !important; /* Prevents iOS auto-zoom */
+        min-height: 40px !important;
+        padding: 0.45rem 0.75rem !important;
+    }
+
+    .card-body {
+        padding: 1rem !important;
+    }
+
+    .card-header, .card-footer {
+        padding: 0.75rem 1rem !important;
+    }
+
+    .py-5 {
+        padding-top: 1.5rem !important;
+        padding-bottom: 1.5rem !important;
+    }
+
+    .py-4 {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+
+    .mb-5 {
+        margin-bottom: 1.25rem !important;
+    }
+
+    .mb-4 {
+        margin-bottom: 1rem !important;
+    }
+
+    /* E-Talk Feed Mobile Optimizations */
+    .etalk-wrapper {
+        border-radius: 12px !important;
+        margin: 0 !important;
+    }
+
+    .tweet-card {
+        padding: 0.85rem !important;
+    }
+
+    .tweet-avatar {
+        width: 36px !important;
+        height: 36px !important;
     }
 
     /* Navbar Mobile Menu Adjustment */
     .navbar .navbar-collapse {
         background: rgba(18, 22, 25, 0.98);
-        padding: 1rem;
+        padding: 0.85rem;
         border-radius: 12px;
         margin-top: 0.5rem;
         border: 1px solid rgba(255, 255, 255, 0.08);
     }
     
     .navbar .nav-link {
-        padding: 0.65rem 0.5rem !important;
+        padding: 0.55rem 0.5rem !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
-    
-    /* Card Padding & Spacing for Mobile */
-    .card-body {
-        padding: 1.25rem !important;
+
+    [data-bs-theme="light"] .navbar .navbar-collapse {
+        background: #ffffff !important;
+        border: 1px solid #e2e8f0 !important;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
     }
 
     .impact-counter {
-        font-size: 2rem !important;
+        font-size: 1.75rem !important;
     }
 
     /* Table Horizontal Scrolling on Small Screens */
     .table-responsive {
-        border-radius: 12px;
+        border-radius: 10px;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+    }
+
+    /* Footer Mobile Adjustments */
+    .site-footer {
+        padding: 2rem 0 1rem !important;
+        text-align: center;
+    }
+
+    .footer-heading-line {
+        left: 50% !important;
+        transform: translateX(-50%) !important;
     }
 }
 
