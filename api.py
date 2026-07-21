@@ -1,5 +1,6 @@
 import os
 import random
+import requests
 from PIL import Image
 from datetime import datetime
 
@@ -24,7 +25,6 @@ def generate_fallback_results(image_path):
     except Exception:
         width, height = 640, 480
     
-    # Try guessing from filename
     filename_lower = os.path.basename(image_path).lower()
     predicted_class = "Laptop"  # Default
     
@@ -50,7 +50,6 @@ def generate_fallback_results(image_path):
         predicted_class = random.choice(EWASTE_CLASSES)
     
     confidence = round(random.uniform(0.82, 0.97), 4)
-    
     box_width = int(width * 0.7)
     box_height = int(height * 0.7)
     
@@ -72,36 +71,50 @@ def generate_fallback_results(image_path):
 def classify_image(image_path):
     """
     Classify an e-waste image using Roboflow API (model_id: e-waste-dataset-r0ojc/43)
+    Supports both InferenceSDK and direct REST HTTP requests via `requests`.
     """
     api_key = os.environ.get('ROBOFLOW_API_KEY')
     api_url = os.environ.get('ROBOFLOW_API_URL', 'https://serverless.roboflow.com')
     
-    if api_key and api_key.strip():
-        try:
-            from inference_sdk import InferenceHTTPClient
-            client = InferenceHTTPClient(
-                api_url=api_url.strip(),
-                api_key=api_key.strip()
-            )
-            result = client.infer(image_path, model_id=MODEL_ID)
-            print(f"Roboflow API ({api_url}) inference successful for model {MODEL_ID}")
-            return result
-        except Exception as e:
-            print(f"Roboflow serverless endpoint failed ({str(e)}). Trying detect.roboflow.com...")
-            try:
-                from inference_sdk import InferenceHTTPClient
-                client = InferenceHTTPClient(
-                    api_url="https://detect.roboflow.com",
-                    api_key=api_key.strip()
-                )
-                result = client.infer(image_path, model_id=MODEL_ID)
-                print(f"Roboflow API (detect.roboflow.com) inference successful for model {MODEL_ID}")
-                return result
-            except Exception as ex:
-                print(f"Roboflow API inference failed ({str(ex)}). Using fallback prediction.")
-                return generate_fallback_results(image_path)
-    else:
+    if not api_key or not api_key.strip():
         print("ROBOFLOW_API_KEY is not set. Using fallback prediction.")
         return generate_fallback_results(image_path)
 
+    # 1. Try SDK if installed
+    try:
+        from inference_sdk import InferenceHTTPClient
+        client = InferenceHTTPClient(
+            api_url=api_url.strip(),
+            api_key=api_key.strip()
+        )
+        result = client.infer(image_path, model_id=MODEL_ID)
+        print(f"Roboflow SDK ({api_url}) inference successful for model {MODEL_ID}")
+        return result
+    except ImportError:
+        print("inference_sdk not installed. Using direct REST API requests.")
+    except Exception as e:
+        print(f"Roboflow SDK inference failed ({str(e)}). Falling back to direct REST API...")
 
+    # 2. Try Direct REST API Request using `requests`
+    endpoints = [
+        f"{api_url.rstrip('/')}/{MODEL_ID}?api_key={api_key.strip()}",
+        f"https://detect.roboflow.com/{MODEL_ID}?api_key={api_key.strip()}"
+    ]
+
+    for endpoint in endpoints:
+        try:
+            with open(image_path, 'rb') as img_file:
+                files = {'file': img_file}
+                res = requests.post(endpoint, files=files, timeout=12)
+                if res.status_code == 200:
+                    data = res.json()
+                    print(f"Roboflow REST API ({endpoint.split('?')[0]}) successful")
+                    return data
+                else:
+                    print(f"Roboflow REST API returned {res.status_code}: {res.text[:150]}")
+        except Exception as http_err:
+            print(f"Roboflow REST API error on {endpoint}: {http_err}")
+
+    # 3. Final Fallback
+    print("All Roboflow connection attempts failed. Using fallback prediction.")
+    return generate_fallback_results(image_path)
