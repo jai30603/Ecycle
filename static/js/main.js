@@ -1,6 +1,38 @@
 // Main JavaScript file for Ecycle
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Theme Toggle Handler (Dark / Light Mode)
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const htmlEl = document.documentElement;
+
+    function applyTheme(theme) {
+        htmlEl.setAttribute('data-bs-theme', theme);
+        localStorage.setItem('theme', theme);
+
+        if (themeIcon) {
+            if (theme === 'light') {
+                themeIcon.className = 'fas fa-moon text-primary';
+                if (themeToggleBtn) themeToggleBtn.title = 'Switch to Dark Mode';
+            } else {
+                themeIcon.className = 'fas fa-sun text-warning';
+                if (themeToggleBtn) themeToggleBtn.title = 'Switch to Bright/Light Mode';
+            }
+        }
+    }
+
+    // Set initial icon state
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    applyTheme(currentTheme);
+
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', function() {
+            const activeTheme = htmlEl.getAttribute('data-bs-theme') || 'dark';
+            const nextTheme = activeTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(nextTheme);
+        });
+    }
+
     // Initialize tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
