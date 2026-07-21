@@ -33,25 +33,30 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+                <ul class="navbar-nav me-auto align-items-center">
                     <li class="nav-item">
-                        <a class="nav-link px-3" href="{{ url_for('index') }}">
+                        <a class="nav-link px-2" href="{{ url_for('index') }}">
                             <i class="fas fa-home me-1"></i> Home
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link px-3" href="{{ url_for('learn') }}">
+                        <a class="nav-link px-2" href="{{ url_for('learn') }}">
                             <i class="fas fa-book-open me-1"></i> Learn
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-2" href="{{ url_for('about') }}">
+                            <i class="fas fa-info-circle me-1"></i> About
                         </a>
                     </li>
                     {% if 'user_id' in session %}
                     <li class="nav-item">
-                        <a class="nav-link px-3" href="{{ url_for('dashboard') }}">
+                        <a class="nav-link px-2" href="{{ url_for('dashboard') }}">
                             <i class="fas fa-tachometer-alt me-1"></i> Dashboard
                         </a>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle px-3" href="#" id="pickupDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle px-2" href="#" id="pickupDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-truck me-1"></i> Schedule Pickup
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="pickupDropdown" style="border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.25);">
@@ -59,31 +64,30 @@
                             <li><a class="dropdown-item" href="{{ url_for('bulk_pickup') }}"><i class="fas fa-building me-2 text-success"></i> Organization Bulk Pickup</a></li>
                         </ul>
                     </li>
-
                     <li class="nav-item">
-                        <a class="nav-link px-3" href="{{ url_for('history') }}">
+                        <a class="nav-link px-2" href="{{ url_for('history') }}">
                             <i class="fas fa-history me-1"></i> History
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link px-3" href="{{ url_for('certificates') }}">
+                        <a class="nav-link px-2" href="{{ url_for('certificates') }}">
                             <i class="fas fa-certificate me-1"></i> Certificates
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link px-3" href="{{ url_for('rewards') }}">
+                        <a class="nav-link px-2" href="{{ url_for('rewards') }}">
                             <i class="fas fa-gift me-1"></i> Rewards
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link px-3" href="{{ url_for('etalk') }}">
+                        <a class="nav-link px-2 text-nowrap" href="{{ url_for('etalk') }}">
                             <i class="fas fa-comments text-success me-1"></i> E-Talk
                         </a>
                     </li>
                     {% endif %}
                     {% if 'admin_id' in session %}
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle px-3" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle px-2" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-user-shield me-1"></i> Admin
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="adminDropdown" style="border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.25);">
@@ -209,6 +213,7 @@
                     </h5>
                     <ul class="list-unstyled footer-links">
                         <li class="mb-2"><a href="{{ url_for('index') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-primary" style="font-size: 0.7rem;"></i>Home</a></li>
+                        <li class="mb-2"><a href="{{ url_for('about') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-primary" style="font-size: 0.7rem;"></i>About Project & Creator</a></li>
                         <li class="mb-2"><a href="{{ url_for('learn') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-primary" style="font-size: 0.7rem;"></i>Learn About E-waste</a></li>
                         <li class="mb-2"><a href="{{ url_for('schedule') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-primary" style="font-size: 0.7rem;"></i>Schedule Pickup</a></li>
                         <li class="mb-2"><a href="{{ url_for('rewards') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-primary" style="font-size: 0.7rem;"></i>Rewards</a></li>

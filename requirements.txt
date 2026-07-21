@@ -1,0 +1,16 @@
+flask>=3.0.0
+flask-sqlalchemy>=3.1.1
+flask-login>=0.6.3
+flask-wtf>=1.2.2
+wtforms>=3.2.1
+email-validator>=2.2.0
+requests>=2.32.3
+feedparser>=6.0.11
+inference-sdk>=0.47.0
+pillow>=10.0.0
+python-dotenv>=1.0.0
+sqlalchemy>=2.0.0
+werkzeug>=3.0.0
+reportlab>=4.0.0
+pandas>=2.0.0
+gunicorn>=21.0.0

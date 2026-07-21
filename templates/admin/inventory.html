@@ -209,9 +209,14 @@
                                 <td>${{ item.estimated_price }}</td>
                                 <td>{{ item.created_at.strftime('%m/%d/%Y') }}</td>
                                 <td>
-                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#itemModal{{ item.id }}">
+                                    <button type="button" class="btn btn-sm btn-info me-1" data-bs-toggle="modal" data-bs-target="#itemModal{{ item.id }}">
                                         <i class="fas fa-info-circle"></i> Details
                                     </button>
+                                    <form action="{{ url_for('admin_delete_inventory', item_id=item.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this inventory item permanently?');">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-trash-alt"></i> Delete
+                                        </button>
+                                    </form>
                                     
                                     <!-- Item Details Modal -->
                                     <div class="modal fade" id="itemModal{{ item.id }}" tabindex="-1" aria-hidden="true">

@@ -1,229 +1,150 @@
 {% extends 'base.html' %}
 
-{% block title %}Rewards - E-Waste Manager{% endblock %}
+{% block title %}Eco-Rewards Store — Ecycle{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-    <div class="card bg-dark mb-5" style="border-radius: 15px; overflow: hidden; border: none; box-shadow: 0 15px 35px rgba(46, 204, 113, 0.2);">
-        <div class="card-body p-4">
+<div class="container py-4">
+    <!-- Rewards Hero Banner -->
+    <div class="card mb-5 glass-card" style="background: linear-gradient(135deg, rgba(26,32,38,0.9), rgba(39,174,96,0.15)) !important;">
+        <div class="card-body p-4 p-md-5">
             <div class="row align-items-center">
                 <div class="col-lg-8">
-                    <h1 class="display-4 text-white mb-3" style="font-weight: 700;">
-                        <i class="fas fa-award me-3 text-primary"></i>Eco-Rewards
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill mb-2 fw-bold" style="background: rgba(46, 204, 113, 0.18); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.4); font-size: 0.82rem;">REDEEM YOUR IMPACT</div>
+                    <h1 class="display-4 text-white mb-3 fw-bold gradient-text">
+                        <i class="fas fa-gift me-2"></i>Eco-Rewards Store
                     </h1>
-                    <p class="lead text-light mb-4">Transform your recycling efforts into exciting rewards and exclusive benefits</p>
-                    <div class="d-flex align-items-center">
-                        <a href="#available-rewards" class="btn btn-primary me-3">
-                            <i class="fas fa-gifts me-2"></i> Browse Rewards
+                    <p class="lead text-light opacity-90 mb-4" style="max-width: 650px;">
+                        Transform your sustainable recycling efforts into real-world gift cards, eco-friendly products, and exclusive discounts.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="#available-rewards" class="btn btn-primary btn-lg shadow-lg">
+                            <i class="fas fa-gifts me-2"></i>Browse Catalog
                         </a>
-                        <a href="{{ url_for('schedule') }}" class="btn btn-outline-light">
-                            <i class="fas fa-recycle me-2"></i> Earn More Points
+                        <a href="{{ url_for('schedule') }}" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-recycle me-2"></i>Earn More Points
                         </a>
                     </div>
                 </div>
                 <div class="col-lg-4 text-center mt-4 mt-lg-0">
-                    <div style="background: linear-gradient(135deg, #2ecc71, #27ae60); border-radius: 50%; width: 180px; height: 180px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(46, 204, 113, 0.4);">
+                    <div style="background: linear-gradient(135deg, #2ecc71, #27ae60); border-radius: 50%; width: 180px; height: 180px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 12px 30px rgba(46, 204, 113, 0.4);">
                         <div class="text-center">
-                            <h6 class="text-white mb-2">YOUR BALANCE</h6>
-                            <h2 class="display-4 text-white mb-0" style="font-weight: 700;">{{ user.eco_points }}</h2>
-                            <p class="text-white mb-0">Eco-Points</p>
+                            <small class="text-white text-uppercase fw-bold opacity-80" style="letter-spacing:1px;">Your Balance</small>
+                            <h2 class="display-4 text-white mb-0 fw-bold">{{ user.eco_points }}</h2>
+                            <small class="text-white fw-bold">Eco-Points</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <div class="row mb-4" id="available-rewards">
-        <div class="col-md-12">
-            <div class="d-flex align-items-center mb-4">
-                <i class="fas fa-gift text-primary me-3" style="font-size: 1.8rem;"></i>
-                <h2 class="mb-0">Available Rewards</h2>
-            </div>
+
+    <!-- Section Title -->
+    <div class="d-flex justify-content-between align-items-center mb-4" id="available-rewards">
+        <div>
+            <h3 class="fw-bold mb-0 text-light"><i class="fas fa-store text-success me-2"></i> Available Rewards</h3>
+            <small class="text-muted">Choose your reward and redeem instantly</small>
         </div>
+        <span class="badge bg-dark border border-secondary px-3 py-2 fs-6">{{ rewards|length }} Items Available</span>
     </div>
-    
-    <!-- Available Rewards -->
-    <div class="row mb-5">
-        <div class="col-md-12">
-            
-            {% if rewards %}
-                <div class="row g-4">
-                    {% for reward in rewards %}
-                        {% if reward.stock > 0 %}
-                        <div class="col-md-4 mb-4">
-                            <div class="reward-card h-100">
-                                <div class="card-body">
-                                    <div class="reward-points">
-                                        <i class="fas fa-leaf me-1"></i> {{ reward.points_required }} Points
-                                    </div>
-                                    <h5 class="card-title">{{ reward.name }}</h5>
-                                    <p class="card-text">{{ reward.description }}</p>
-                                    <div class="d-flex justify-content-between align-items-center mt-3">
-                                        <span class="badge bg-info text-light">{{ reward.reward_type }}</span>
-                                        <span class="text-light small"><i class="fas fa-cubes me-1"></i> {{ reward.stock }} in stock</span>
-                                    </div>
-                                </div>
-                                <div class="card-footer">
-                                    {% if user.eco_points >= reward.points_required %}
-                                        <form action="{{ url_for('redeem_reward', reward_id=reward.id) }}" method="post">
-                                            <button type="submit" class="btn btn-success w-100" 
-                                                onclick="return confirm('Are you sure you want to redeem this reward for {{ reward.points_required }} points? Your points balance will be reduced by this amount.');">
-                                                <i class="fas fa-gift me-2"></i> Redeem Reward
-                                            </button>
-                                        </form>
-                                    {% else %}
-                                        <button class="btn btn-outline-secondary w-100" disabled>
-                                            <i class="fas fa-lock me-2"></i> Need {{ reward.points_required - user.eco_points }} more points
-                                        </button>
-                                    {% endif %}
-                                </div>
+
+    <!-- Rewards Grid -->
+    <div class="row g-4 mb-5">
+        {% if rewards %}
+            {% for reward in rewards %}
+                {% if reward.stock > 0 %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="reward-card glass-card h-100 d-flex flex-column">
+                        <div class="card-body p-4 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <span class="eco-points-badge">
+                                    <i class="fas fa-leaf me-1"></i> {{ reward.points_required }} Points
+                                </span>
+                                <span class="badge bg-secondary bg-opacity-40 text-light">{{ reward.reward_type }}</span>
+                            </div>
+
+                            <h4 class="card-title text-light mb-2 fw-bold">{{ reward.name }}</h4>
+                            <p class="card-text text-muted mb-4 flex-grow-1" style="font-size: 0.92rem;">{{ reward.description }}</p>
+
+                            <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary border-opacity-25 mt-auto">
+                                <small class="text-muted"><i class="fas fa-boxes me-1 text-success"></i> Stock: {{ reward.stock }} available</small>
                             </div>
                         </div>
-                        {% endif %}
-                    {% endfor %}
-                </div>
-            {% else %}
-                <div class="alert alert-info">
-                    <p class="mb-0">No rewards are currently available. Please check back later!</p>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <!-- Your Redemptions -->
-    <div class="row mt-5">
-        <div class="col-md-12">
-            <div class="d-flex align-items-center mb-4">
-                <i class="fas fa-history text-primary me-3" style="font-size: 1.8rem;"></i>
-                <h3 class="mb-0">Your Reward History</h3>
-            </div>
-            
-            {% if redemptions %}
-                <div class="card" style="border-radius: 12px; overflow: hidden;">
-                    <div class="card-header bg-dark py-3">
-                        <h5 class="mb-0 text-white"><i class="fas fa-award me-2"></i> Your Redeemed Rewards</h5>
+
+                        <div class="card-footer bg-transparent p-3">
+                            {% if user.eco_points >= reward.points_required %}
+                                <form action="{{ url_for('redeem_reward', reward_id=reward.id) }}" method="post">
+                                    <button type="submit" class="btn btn-success w-100 py-2 shadow-sm" 
+                                        onclick="return confirm('Redeem {{ reward.name }} for {{ reward.points_required }} points?');">
+                                        <i class="fas fa-gift me-2"></i> Redeem Reward
+                                    </button>
+                                </form>
+                            {% else %}
+                                <button class="btn btn-outline-secondary w-100 py-2" disabled>
+                                    <i class="fas fa-lock me-2"></i> Need {{ reward.points_required - user.eco_points }} More Points
+                                </button>
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+                <h5 class="text-light">No Rewards Available Currently</h5>
+                <p class="text-muted">Check back soon for new gift cards and products!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Your Redemptions History -->
+    <div class="mt-5">
+        <h3 class="fw-bold mb-3 text-light"><i class="fas fa-history text-primary me-2"></i> Your Redemption History</h3>
+        
+        {% if redemptions %}
+            <div class="card glass-card overflow-hidden">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Reward</th>
+                                    <th>Points Redeemed</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for redemption in redemptions %}
                                     <tr>
-                                        <th><i class="fas fa-gift me-2 text-primary"></i>Reward</th>
-                                        <th><i class="fas fa-leaf me-2 text-success"></i>Points Spent</th>
-                                        <th><i class="fas fa-info-circle me-2 text-info"></i>Status</th>
-                                        <th><i class="fas fa-calendar-alt me-2 text-warning"></i>Redemption Date</th>
+                                        <td class="fw-bold text-light">{{ redemption.reward.name }}</td>
+                                        <td><span class="badge bg-success bg-opacity-20 text-success fw-bold">{{ redemption.points_spent }} pts</span></td>
+                                        <td>
+                                            {% if redemption.status == 'Pending' %}
+                                                <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i> Pending Processing</span>
+                                            {% elif redemption.status == 'Processed' %}
+                                                <span class="badge bg-info"><i class="fas fa-cog me-1"></i> Processed</span>
+                                            {% elif redemption.status == 'Delivered' %}
+                                                <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Delivered</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ redemption.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-muted">{{ redemption.redeemed_at.strftime('%b %d, %Y %H:%M') }}</td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    {% for redemption in redemptions %}
-                                        <tr>
-                                            <td><strong>{{ redemption.reward.name }}</strong></td>
-                                            <td>
-                                                <span class="badge bg-success">{{ redemption.points_spent }} points</span>
-                                            </td>
-                                            <td>
-                                                {% if redemption.status == 'Pending' %}
-                                                    <span class="badge bg-warning">
-                                                        <i class="fas fa-clock me-1"></i> Pending
-                                                    </span>
-                                                {% elif redemption.status == 'Processed' %}
-                                                    <span class="badge bg-primary">
-                                                        <i class="fas fa-cog me-1"></i> Processed
-                                                    </span>
-                                                {% elif redemption.status == 'Delivered' %}
-                                                    <span class="badge bg-success">
-                                                        <i class="fas fa-check-circle me-1"></i> Delivered
-                                                    </span>
-                                                {% else %}
-                                                    <span class="badge bg-secondary">{{ redemption.status }}</span>
-                                                {% endif %}
-                                            </td>
-                                            <td>{{ redemption.redeemed_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            {% else %}
-                <div class="card" style="border-radius: 12px; overflow: hidden;">
-                    <div class="card-body text-center py-5">
-                        <i class="fas fa-gift fa-4x mb-4 text-primary opacity-50"></i>
-                        <h4 class="mb-3">No Redemption History</h4>
-                        <p class="mb-4 text-muted">You haven't redeemed any rewards yet. Start collecting eco-points to unlock amazing rewards!</p>
-                        <a href="#available-rewards" class="btn btn-primary">
-                            <i class="fas fa-arrow-up me-2"></i> Browse Available Rewards
-                        </a>
-                    </div>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-    
-    <!-- How to Earn More Points -->
-    <div class="card mt-5 bg-dark" style="border-radius: 15px; overflow: hidden; border: none; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);">
-        <div class="card-body p-4">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <h3 class="text-white mb-4">
-                        <i class="fas fa-star-half-alt text-warning me-3"></i>How to Earn More Eco-Points
-                    </h3>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="d-flex mb-3">
-                                <div class="bg-success p-3 d-flex align-items-center justify-content-center me-3" style="border-radius: 10px; width: 48px; height: 48px;">
-                                    <i class="fas fa-truck text-white fa-lg"></i>
-                                </div>
-                                <div>
-                                    <h5 class="text-light mb-1">Schedule Pickups</h5>
-                                    <p class="text-light-50 mb-0">More pickups = more points</p>
-                                </div>
-                            </div>
-                            <div class="d-flex mb-3">
-                                <div class="bg-info p-3 d-flex align-items-center justify-content-center me-3" style="border-radius: 10px; width: 48px; height: 48px;">
-                                    <i class="fas fa-desktop text-white fa-lg"></i>
-                                </div>
-                                <div>
-                                    <h5 class="text-light mb-1">Large Devices</h5>
-                                    <p class="text-light-50 mb-0">Bigger items earn more</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="d-flex mb-3">
-                                <div class="bg-warning p-3 d-flex align-items-center justify-content-center me-3" style="border-radius: 10px; width: 48px; height: 48px;">
-                                    <i class="fas fa-check-circle text-white fa-lg"></i>
-                                </div>
-                                <div>
-                                    <h5 class="text-light mb-1">Better Condition</h5>
-                                    <p class="text-light-50 mb-0">Working devices worth more</p>
-                                </div>
-                            </div>
-                            <div class="d-flex mb-3">
-                                <div class="bg-primary p-3 d-flex align-items-center justify-content-center me-3" style="border-radius: 10px; width: 48px; height: 48px;">
-                                    <i class="fas fa-users text-white fa-lg"></i>
-                                </div>
-                                <div>
-                                    <h5 class="text-light mb-1">Refer Friends</h5>
-                                    <p class="text-light-50 mb-0">Earn bonus points</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 text-center mt-4 mt-lg-0">
-                    <div class="p-4" style="background: rgba(0,0,0,0.2); border-radius: 12px;">
-                        <h4 class="text-white mb-3">Ready to recycle?</h4>
-                        <p class="text-light mb-4">Schedule a pickup now and start earning eco-points for rewards!</p>
-                        <a href="{{ url_for('schedule') }}" class="btn btn-success btn-lg w-100">
-                            <i class="fas fa-recycle me-2"></i> Schedule Pickup
-                        </a>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
-        </div>
+        {% else %}
+            <div class="card glass-card p-5 text-center">
+                <i class="fas fa-award fa-3x text-muted mb-3"></i>
+                <h5 class="text-light">No Redemptions Yet</h5>
+                <p class="text-muted mb-0">Schedule e-waste pickups to accumulate points and redeem your first reward!</p>
+            </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

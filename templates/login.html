@@ -1,46 +1,58 @@
 {% extends 'base.html' %}
 
-{% block title %}Login - Ecycle{% endblock %}
+{% block title %}Login — Ecycle{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h3 class="mb-0">Login to Your Account</h3>
+<div class="row justify-content-center py-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card glass-card shadow-lg">
+            <div class="card-header text-center py-4 border-bottom border-secondary border-opacity-25">
+                <div class="user-avatar mx-auto mb-2" style="width: 54px; height: 54px; font-size: 1.4rem;">
+                    <i class="fas fa-leaf text-white"></i>
+                </div>
+                <h3 class="mb-1 text-white fw-bold gradient-text">Welcome Back</h3>
+                <p class="text-muted mb-0 small">Log in to manage your e-waste pickups & eco points</p>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4 p-md-5">
                 <form method="POST" action="{{ url_for('login') }}">
                     {{ form.hidden_tag() }}
                     
-                    <div class="mb-3">
-                        <label for="username" class="form-label">{{ form.username.label }}</label>
-                        {{ form.username(class="form-control", id="username", placeholder="Enter your username") }}
+                    <div class="mb-4">
+                        <label for="username" class="form-label fw-bold text-light mb-2">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark text-muted border-secondary border-opacity-25"><i class="fas fa-user"></i></span>
+                            {{ form.username(class="form-control", id="username", placeholder="Enter your username") }}
+                        </div>
                         {% if form.username.errors %}
                             {% for error in form.username.errors %}
-                                <div class="text-danger">{{ error }}</div>
+                                <small class="text-danger mt-1 d-block">{{ error }}</small>
                             {% endfor %}
                         {% endif %}
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="password" class="form-label">{{ form.password.label }}</label>
-                        {{ form.password(class="form-control", id="password", placeholder="Enter your password") }}
+                    <div class="mb-4">
+                        <label for="password" class="form-label fw-bold text-light mb-2">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark text-muted border-secondary border-opacity-25"><i class="fas fa-lock"></i></span>
+                            {{ form.password(class="form-control", id="password", placeholder="Enter your password") }}
+                        </div>
                         {% if form.password.errors %}
                             {% for error in form.password.errors %}
-                                <div class="text-danger">{{ error }}</div>
+                                <small class="text-danger mt-1 d-block">{{ error }}</small>
                             {% endfor %}
                         {% endif %}
                     </div>
                     
                     <div class="mb-3 d-grid">
-                        {{ form.submit(class="btn btn-primary") }}
+                        <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                            <i class="fas fa-sign-in-alt me-2"></i> Log In
+                        </button>
                     </div>
                 </form>
             </div>
-            <div class="card-footer text-center">
-                <p class="mb-0">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
-                <p class="mb-0 mt-2">Admin? <a href="{{ url_for('admin_login') }}">Admin Login</a></p>
+            <div class="card-footer text-center py-3 bg-transparent border-top border-secondary border-opacity-25">
+                <p class="mb-1 text-muted">Don't have an account? <a href="{{ url_for('register') }}" class="text-success fw-bold">Register here</a></p>
+                <small class="text-muted">System Admin? <a href="{{ url_for('admin_login') }}" class="text-info">Admin Portal</a></small>
             </div>
         </div>
     </div>

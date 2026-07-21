@@ -12,15 +12,28 @@
                 <h5 class="mb-0">E-Waste Classification</h5>
             </div>
             <div class="card-body">
-                <p>Not sure what type of e-waste you have? Upload a photo and let our AI classify it for you.</p>
+                <p class="text-muted small">Snap a photo on your mobile phone or select an image file for auto-fill AI classification.</p>
                 
                 <form id="imageUploadForm" method="POST" enctype="multipart/form-data" class="no-spinner">
                     <div class="mb-3">
-                        <label for="imageFile" class="form-label">Upload Image</label>
-                        <input type="file" class="form-control" id="imageFile" name="image" accept="image/*">
+                        <label for="imageFile" class="form-label fw-bold">Upload / Take Photo</label>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label for="schedule-camera-input" class="btn btn-outline-success btn-sm w-100 py-2 d-flex align-items-center justify-content-center gap-1 cursor-pointer">
+                                    <i class="fas fa-camera"></i> <span>Camera</span>
+                                </label>
+                                <input type="file" id="schedule-camera-input" accept="image/*" capture="environment" class="d-none" onchange="document.getElementById('imageFile').files = this.files; document.getElementById('imageFile').dispatchEvent(new Event('change'));">
+                            </div>
+                            <div class="col-6">
+                                <label for="imageFile" class="btn btn-outline-primary btn-sm w-100 py-2 d-flex align-items-center justify-content-center gap-1 cursor-pointer">
+                                    <i class="fas fa-image"></i> <span>Gallery</span>
+                                </label>
+                            </div>
+                        </div>
+                        <input type="file" class="form-control d-none" id="imageFile" name="image" accept="image/*">
                     </div>
-                    <button type="submit" class="btn btn-info">
-                        <i class="fas fa-search me-1"></i> Classify Image
+                    <button type="submit" class="btn btn-primary w-100 py-2">
+                        <i class="fas fa-microchip me-1"></i> Classify & Auto-Fill Form
                     </button>
                 </form>
                 

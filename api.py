@@ -1,162 +1,107 @@
 import os
-import json
 import random
 from PIL import Image
 from datetime import datetime
 
-# Check if Roboflow API key is available
-api_key = os.environ.get('ROBOFLOW_API_KEY')
-HAS_API_KEY = bool(api_key)
+# Model details
+MODEL_ID = "e-waste-dataset-r0ojc/43"
 
-# Only import and initialize the client if API key is available
-if HAS_API_KEY:
-    try:
-        from inference_sdk import InferenceHTTPClient
-        CLIENT = InferenceHTTPClient(
-            api_url="https://detect.roboflow.com",
-            api_key=api_key
-        )
-    except ImportError:
-        HAS_API_KEY = False
-
-# Complete list of e-waste types from Roboflow
-EWASTE_TYPES = [
-    "Air-Conditioner", "Bar-Phone", "Battery", "Blood-Pressure-Monitor", "Boiler", 
-    "CRT-Monitor", "CRT-TV", "Calculator", "Camera", "Ceiling-Fan", "Christmas-Lights", 
-    "Clothes-Iron", "Coffee-Machine", "Compact-Fluorescent-Lamps", "Computer-Keyboard", 
-    "Computer-Mouse", "Cooled-Dispenser", "Cooling-Display", "Dehumidifier", "Desktop-PC", 
-    "Digital-Oscilloscope", "Dishwasher", "Drone", "Electric-Bicycle", "Electric-Guitar", 
-    "Electrocardiograph-Machine", "Electronic-Keyboard", "Exhaust-Fan", "Flashlight", 
-    "Flat-Panel-Monitor", "Flat-Panel-TV", "Floor-Fan", "Freezer", "Glucose-Meter", 
-    "HDD", "Hair-Dryer", "Headphone", "LED-Bulb", "Laptop", "Microwave", "Music-Player", 
-    "Neon-Sign", "Network-Switch", "Non-Cooled-Dispenser", "Oven", "PCB", 
-    "Patient-Monitoring-System", "Photovoltaic-Panel", "PlayStation-5", "Power-Adapter", 
-    "Printer", "Projector", "Pulse-Oximeter", "Range-Hood", "Refrigerator", "Rotary-Mower",
-    "Router", "SSD", "Server", "Smart-Watch", "Smartphone", "Smoke-Detector", 
-    "Soldering-Iron", "Speaker", "Stove", "Straight-Tube-Fluorescent-Lamp", "Street-Lamp", 
-    "TV-Remote-Control", "Table-Lamp", "Tablet", "Telephone-Set", "Toaster", "Tumble-Dryer", 
-    "USB-Flash-Drive", "Vacuum-Cleaner", "Washing-Machine", "Xbox-Series-X"
+# List of common e-waste classes for fallback
+EWASTE_CLASSES = [
+    "Laptop", "Smartphone", "Desktop-PC", "Tablet", "Flat-Panel-Monitor",
+    "Printer", "Air-Conditioner", "Washing-Machine", "Refrigerator",
+    "Microwave", "Flat-Panel-TV", "Camera", "Computer-Keyboard",
+    "Computer-Mouse", "Headphone", "Battery", "PCB", "Router"
 ]
 
-def generate_mock_results(image_path):
+def generate_fallback_results(image_path):
     """
-    Generate smart mock classification results when API is not available
-    Uses simple image analysis to make a more educated guess
-    
-    Args:
-        image_path (str): Path to the image file
-        
-    Returns:
-        dict: Mock classification results
+    Generate mock detection results when API key is missing or request fails.
     """
-    # Get image info
     try:
         img = Image.open(image_path)
         width, height = img.size
-        
-        # Common e-waste types for demonstration
-        common_types = [
-            "Laptop", "Smartphone", "Desktop-PC", "Tablet", "Flat-Panel-Monitor",
-            "Printer", "Camera", "Refrigerator", "Battery"
-        ]
-        
-        # Default to a common type with high confidence
-        ewaste_type = "Laptop"
-        confidence = 0.92
-        
-        # Do some very basic image analysis to make a slightly more educated guess
-        # This is not real classification, just a simple heuristic based on image dimensions and color
-        aspect_ratio = width / height if height > 0 else 1
-        
-        # Convert to RGB if the image has an alpha channel
-        if img.mode == 'RGBA':
-            img = img.convert('RGB')
-        
-        # Get the average color (very simplistic approach)
-        pixel_data = list(img.resize((1, 1)).getdata()[0])
-        avg_color = sum(pixel_data) / len(pixel_data) if pixel_data else 128
-        
-        # Simple heuristics based on aspect ratio and color
-        if 0.9 < aspect_ratio < 1.1:  # Square-ish
-            if avg_color < 100:  # Dark
-                ewaste_type = "Computer-Mouse"
-                confidence = 0.85
-            else:
-                ewaste_type = "Battery"
-                confidence = 0.88
-        elif aspect_ratio > 1.5:  # Wide
-            ewaste_type = "Laptop"
-            confidence = 0.94
-        elif aspect_ratio < 0.7:  # Tall
-            ewaste_type = "Smartphone"
-            confidence = 0.91
-        elif width > 1000 and height > 800:  # Large image
-            ewaste_type = "Flat-Panel-Monitor"
-            confidence = 0.89
-        
-        # Override type if the user explicitly mentioned "laptop" in the path
-        if "laptop" in image_path.lower():
-            ewaste_type = "Laptop"
-            confidence = 0.97
-        elif "phone" in image_path.lower() or "smartphone" in image_path.lower():
-            ewaste_type = "Smartphone"
-            confidence = 0.96
-        elif "monitor" in image_path.lower() or "display" in image_path.lower():
-            ewaste_type = "Flat-Panel-Monitor"
-            confidence = 0.95
-                
-    except Exception as e:
-        print(f"Error analyzing image: {str(e)}, defaulting to simple mock")
+    except Exception:
         width, height = 640, 480
-        ewaste_type = "Laptop"  # Default to laptop if analysis fails
-        confidence = 0.85
     
-    # Create mock bounding box
+    # Try guessing from filename
+    filename_lower = os.path.basename(image_path).lower()
+    predicted_class = "Laptop"  # Default
+    
+    if "phone" in filename_lower or "mobile" in filename_lower:
+        predicted_class = "Smartphone"
+    elif "pc" in filename_lower or "desktop" in filename_lower:
+        predicted_class = "Desktop-PC"
+    elif "tv" in filename_lower or "display" in filename_lower:
+        predicted_class = "Flat-Panel-TV"
+    elif "monitor" in filename_lower:
+        predicted_class = "Flat-Panel-Monitor"
+    elif "keyboard" in filename_lower:
+        predicted_class = "Computer-Keyboard"
+    elif "mouse" in filename_lower:
+        predicted_class = "Computer-Mouse"
+    elif "printer" in filename_lower:
+        predicted_class = "Printer"
+    elif "fridge" in filename_lower or "refrigerator" in filename_lower:
+        predicted_class = "Refrigerator"
+    elif "washing" in filename_lower:
+        predicted_class = "Washing-Machine"
+    else:
+        predicted_class = random.choice(EWASTE_CLASSES)
+    
+    confidence = round(random.uniform(0.82, 0.97), 4)
+    
     box_width = int(width * 0.7)
     box_height = int(height * 0.7)
-    x = int((width - box_width) * 0.15)
-    y = int((height - box_height) * 0.15)
     
-    # Generate mock result in the format similar to Roboflow API
-    mock_result = {
-        "time": datetime.now().strftime("%Y-%m-%dT%H:%M:%S.%f"),
-        "image": {
-            "width": width,
-            "height": height
-        },
+    return {
+        "time": datetime.now().isoformat(),
+        "image": {"width": width, "height": height},
         "predictions": [
             {
-                "x": x + box_width/2,
-                "y": y + box_height/2,
+                "x": width / 2,
+                "y": height / 2,
                 "width": box_width,
                 "height": box_height,
-                "class": ewaste_type,
+                "class": predicted_class,
                 "confidence": confidence
             }
         ]
     }
-    
-    print(f"Mock classification: {ewaste_type} with confidence {confidence:.2f}")
-    return mock_result
 
 def classify_image(image_path):
     """
-    Classify an e-waste image using Roboflow API or mock results
-    
-    Args:
-        image_path (str): Path to the image file
-        
-    Returns:
-        dict: Classification results
+    Classify an e-waste image using Roboflow API (model_id: e-waste-dataset-r0ojc/43)
     """
-    if HAS_API_KEY:
+    api_key = os.environ.get('ROBOFLOW_API_KEY')
+    api_url = os.environ.get('ROBOFLOW_API_URL', 'https://serverless.roboflow.com')
+    
+    if api_key and api_key.strip():
         try:
-            result = CLIENT.infer(image_path, model_id="e-waste-dataset-r0ojc/43")
-            print("Used Roboflow API for classification")
+            from inference_sdk import InferenceHTTPClient
+            client = InferenceHTTPClient(
+                api_url=api_url.strip(),
+                api_key=api_key.strip()
+            )
+            result = client.infer(image_path, model_id=MODEL_ID)
+            print(f"Roboflow API ({api_url}) inference successful for model {MODEL_ID}")
             return result
         except Exception as e:
-            print(f"Error using Roboflow API: {str(e)}, using mock data instead")
-            return generate_mock_results(image_path)
+            print(f"Roboflow serverless endpoint failed ({str(e)}). Trying detect.roboflow.com...")
+            try:
+                from inference_sdk import InferenceHTTPClient
+                client = InferenceHTTPClient(
+                    api_url="https://detect.roboflow.com",
+                    api_key=api_key.strip()
+                )
+                result = client.infer(image_path, model_id=MODEL_ID)
+                print(f"Roboflow API (detect.roboflow.com) inference successful for model {MODEL_ID}")
+                return result
+            except Exception as ex:
+                print(f"Roboflow API inference failed ({str(ex)}). Using fallback prediction.")
+                return generate_fallback_results(image_path)
     else:
-        print("Roboflow API key not available, using mock data for classification")
-        return generate_mock_results(image_path)
+        print("ROBOFLOW_API_KEY is not set. Using fallback prediction.")
+        return generate_fallback_results(image_path)
+
+

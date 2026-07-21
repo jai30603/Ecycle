@@ -1,28 +1,33 @@
 {% extends 'base.html' %}
 
-{% block title %}Ecycle - Smart E-Waste Pickup Service{% endblock %}
+{% block title %}Ecycle — Smart E-Waste Pickup & Recycling Platform{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
 <section class="hero-section text-center">
     <div class="container">
-        <div class="py-4 px-md-5" style="background-color: rgba(0,0,0,0.3); border-radius: 15px; backdrop-filter: blur(5px);">
-            <h1 class="display-4 fw-bold mb-4">Smart E-Waste Recycling Made Easy</h1>
-            <p class="lead mb-4">Schedule pickups, earn rewards, and help save the planet one device at a time</p>
-            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mt-5">
+        <div class="py-5 px-md-5 mx-auto" style="max-width: 950px; background: rgba(18, 22, 25, 0.7); border-radius: 24px; backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+            <div class="d-inline-flex align-items-center gap-2 px-4 py-2 rounded-pill mb-3 fw-bold" style="background: rgba(46, 204, 113, 0.18); color: #2ecc71; border: 1px solid rgba(46, 204, 113, 0.4);">
+                <i class="fas fa-microchip text-success"></i> <span>AI-Powered E-Waste Classification Platform</span>
+            </div>
+            <h1 class="display-3 fw-bold mb-4 gradient-text">Smart E-Waste Recycling Made Easy</h1>
+            <p class="lead mb-4 text-light opacity-90 mx-auto" style="max-width: 700px; font-size: 1.25rem;">
+                Schedule door-step pickups, earn eco-points, and track your carbon footprint contribution — powered by Roboflow AI classification.
+            </p>
+            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mt-4">
                 {% if 'user_id' in session %}
-                <a href="{{ url_for('schedule') }}" class="btn btn-primary btn-lg px-4 gap-3">
-                    <i class="fas fa-recycle me-2"></i>Schedule Pickup
+                <a href="{{ url_for('schedule') }}" class="btn btn-primary btn-lg px-4 gap-3 shadow-lg">
+                    <i class="fas fa-recycle me-2"></i>Schedule Pickup Now
                 </a>
                 <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light btn-lg px-4">
-                    <i class="fas fa-tachometer-alt me-2"></i>My Dashboard
+                    <i class="fas fa-tachometer-alt me-2"></i>My Eco Dashboard
                 </a>
                 {% else %}
-                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 gap-3">
-                    <i class="fas fa-user-plus me-2"></i>Get Started
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 gap-3 shadow-lg">
+                    <i class="fas fa-user-plus me-2"></i>Get Started Free
                 </a>
                 <a href="{{ url_for('learn') }}" class="btn btn-outline-light btn-lg px-4">
-                    <i class="fas fa-book me-2"></i>Learn More
+                    <i class="fas fa-book-open me-2"></i>Learn Recycling
                 </a>
                 {% endif %}
             </div>
@@ -32,8 +37,13 @@
 
 <!-- How It Works Section -->
 <section class="py-5">
-    <div class="container">
-        <h2 class="text-center mb-5">How It Works</h2>
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge bg-success bg-opacity-20 text-success mb-2 px-3 py-2 fs-6">SIMPLE 3-STEP PROCESS</span>
+            <h2 class="display-5 fw-bold">How ECycle Works</h2>
+            <p class="text-muted">Turn your electronic waste into verified eco-rewards in three easy steps</p>
+        </div>
+
         <div class="row g-4">
             <div class="col-md-4">
                 <div class="card h-100 text-center p-4">
@@ -41,30 +51,30 @@
                         <i class="fas fa-camera"></i>
                     </div>
                     <div class="card-body">
-                        <h4 class="card-title">1. Identify Your E-Waste</h4>
-                        <p class="card-text">Take a photo of your electronic waste and our AI will identify it for proper recycling.</p>
+                        <h4 class="card-title mb-3">1. AI Identification</h4>
+                        <p class="card-text text-muted">Upload a photo of your electronic waste and our Roboflow AI model instantly categorizes device specs & eco points.</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card h-100 text-center p-4">
                     <div class="feature-icon mx-auto">
-                        <i class="fas fa-calendar-alt"></i>
+                        <i class="fas fa-truck-loading"></i>
                     </div>
                     <div class="card-body">
-                        <h4 class="card-title">2. Schedule a Pickup</h4>
-                        <p class="card-text">Choose a convenient time for us to collect your e-waste directly from your doorstep.</p>
+                        <h4 class="card-title mb-3">2. Doorstep Pickup</h4>
+                        <p class="card-text text-muted">Select a convenient date and time slot for certified logistics collection directly from your address.</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card h-100 text-center p-4">
                     <div class="feature-icon mx-auto">
-                        <i class="fas fa-award"></i>
+                        <i class="fas fa-gift"></i>
                     </div>
                     <div class="card-body">
-                        <h4 class="card-title">3. Earn & Redeem</h4>
-                        <p class="card-text">Get eco points for your contribution and redeem them for exciting rewards and discounts.</p>
+                        <h4 class="card-title mb-3">3. Earn Eco Rewards</h4>
+                        <p class="card-text text-muted">Receive eco-points & official green certificates. Redeem points for gift vouchers, discounts, or sustainable products.</p>
                     </div>
                 </div>
             </div>
@@ -72,75 +82,98 @@
     </div>
 </section>
 
-<!-- Environmental Impact -->
-<section class="py-5 bg-dark">
-    <div class="container">
-        <h2 class="text-center mb-5">Our Environmental Impact</h2>
+<!-- Environmental Impact Section -->
+<section class="py-5" style="background: linear-gradient(180deg, rgba(18,22,25,0.6) 0%, rgba(39,174,96,0.08) 100%);">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary bg-opacity-20 text-primary mb-2 px-3 py-2 fs-6">OUR VERIFIED IMPACT</span>
+            <h2 class="display-5 fw-bold">Real Environmental Difference</h2>
+        </div>
+
         <div class="row g-4 text-center">
             <div class="col-md-4">
-                <div class="impact-counter">5,000+</div>
-                <h4>Devices Recycled</h4>
-                <p>Electronic devices diverted from landfills</p>
+                <div class="card p-4 h-100">
+                    <div class="impact-counter mb-2">5,480+</div>
+                    <h4 class="fw-bold">Devices Diverted</h4>
+                    <p class="text-muted mb-0">Prevented toxic heavy metal landfill contamination</p>
+                </div>
             </div>
             <div class="col-md-4">
-                <div class="impact-counter">25,000+</div>
-                <h4>kg CO2 Saved</h4>
-                <p>Reduction in carbon emissions</p>
+                <div class="card p-4 h-100">
+                    <div class="impact-counter mb-2">28,900+</div>
+                    <h4 class="fw-bold">kg CO₂ Prevented</h4>
+                    <p class="text-muted mb-0">Offset carbon emissions through verified metal recovery</p>
+                </div>
             </div>
             <div class="col-md-4">
-                <div class="impact-counter">1,200+</div>
-                <h4>Happy Users</h4>
-                <p>Helping to make a difference</p>
+                <div class="card p-4 h-100">
+                    <div class="impact-counter mb-2">1,850+</div>
+                    <h4 class="fw-bold">Active Recyclers</h4>
+                    <p class="text-muted mb-0">Community members creating a sustainable future</p>
+                </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Latest News -->
+<!-- Latest Sustainability News -->
 <section class="py-5">
     <div class="container">
-        <h2 class="text-center mb-4">Latest E-Waste News</h2>
-        <div class="row">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-0"><i class="fas fa-newspaper text-success me-2"></i> Sustainability News</h3>
+                <small class="text-muted">Stay informed on global e-waste recycling updates</small>
+            </div>
+            <a href="{{ url_for('learn') }}" class="btn btn-sm btn-outline-success">View All Guides</a>
+        </div>
+
+        <div class="row g-4">
             {% if news %}
                 {% for item in news %}
-                <div class="col-md-6 mb-4">
+                <div class="col-md-6">
                     <div class="card h-100">
                         <div class="card-body">
-                            <h5 class="card-title">{{ item.title }}</h5>
+                            <h5 class="card-title text-light mb-2">{{ item.title }}</h5>
                             {% if item.published %}
-                            <p class="card-subtitle mb-2 text-muted">{{ item.published }}</p>
+                            <p class="card-subtitle mb-3 text-muted small"><i class="far fa-clock me-1"></i> {{ item.published }}</p>
                             {% endif %}
                             {% if item.summary %}
-                            <p class="card-text">{{ item.summary | safe }}</p>
+                            <p class="card-text text-muted">{{ item.summary | safe | truncate(160) }}</p>
                             {% endif %}
-                            <a href="{{ item.link }}" class="btn btn-sm btn-outline-info" target="_blank">Read More</a>
+                            <a href="{{ item.link }}" class="btn btn-sm btn-outline-primary mt-2" target="_blank">
+                                Read Full Article <i class="fas fa-external-link-alt ms-1"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             {% else %}
-                <div class="col-12 text-center">
-                    <p>No news available at the moment. Please check back later.</p>
+                <div class="col-12 text-center py-4">
+                    <p class="text-muted">Latest news feeds updating...</p>
                 </div>
             {% endif %}
         </div>
     </div>
 </section>
 
-<!-- Call to Action -->
-<section class="py-5 bg-success text-white">
-    <div class="container text-center">
-        <h2 class="mb-4">Ready to Recycle Your E-Waste?</h2>
-        <p class="lead mb-4">Join thousands of users making a positive impact on the environment</p>
-        {% if 'user_id' in session %}
-        <a href="{{ url_for('schedule') }}" class="btn btn-dark btn-lg px-4">
-            <i class="fas fa-recycle me-2"></i>Schedule a Pickup Now
-        </a>
-        {% else %}
-        <a href="{{ url_for('register') }}" class="btn btn-dark btn-lg px-4">
-            <i class="fas fa-leaf me-2"></i>Sign Up Today
-        </a>
-        {% endif %}
+<!-- Call to Action Banner -->
+<section class="py-5 my-4">
+    <div class="container">
+        <div class="p-5 text-center" style="background: linear-gradient(135deg, #1e8449, #27ae60, #16a085); border-radius: 24px; box-shadow: 0 15px 35px rgba(39,174,96,0.3);">
+            <h2 class="display-6 fw-bold text-white mb-3">Ready to Recycle Your E-Waste?</h2>
+            <p class="lead text-white opacity-90 mb-4 mx-auto" style="max-width: 650px;">
+                Schedule your pickup today, get instant price estimates, and claim eco rewards while protecting the planet.
+            </p>
+            {% if 'user_id' in session %}
+            <a href="{{ url_for('schedule') }}" class="btn btn-dark btn-lg px-5 py-3 rounded-pill fw-bold shadow">
+                <i class="fas fa-recycle me-2 text-success"></i>Schedule Pickup Now
+            </a>
+            {% else %}
+            <a href="{{ url_for('register') }}" class="btn btn-dark btn-lg px-5 py-3 rounded-pill fw-bold shadow">
+                <i class="fas fa-user-plus me-2 text-success"></i>Join ECycle Free
+            </a>
+            {% endif %}
+        </div>
     </div>
 </section>
 {% endblock %}

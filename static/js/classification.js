@@ -48,20 +48,16 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             body: formData
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
-        .then(data => {
+        .then(response => response.json().then(data => ({ status: response.status, ok: response.ok, data })))
+        .then(res => {
+            const data = res.data;
             // Hide loading spinner
             loadingSpinner.style.display = 'none';
             
             // Display classification results
             resultContainer.style.display = 'block';
             
-            if (data.success) {
+            if (res.ok && data.success) {
                 // Get the e-waste type and confidence level
                 const ewasteType = data.result.ewaste_type;
                 const confidence = (data.result.confidence * 100).toFixed(1);
