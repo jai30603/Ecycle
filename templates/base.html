@@ -109,7 +109,7 @@
                     </li>
                     {% endif %}
                 </ul>
-                <ul class="navbar-nav">
+                <ul class="navbar-nav align-items-center">
                     {% if 'user_id' in session %}
                     <li class="nav-item me-3">
                         <div style="background: linear-gradient(135deg, #2ecc71, #27ae60); border-radius: 50px; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); padding: 5px 15px;" class="d-flex align-items-center">
@@ -136,7 +136,7 @@
                         </ul>
                     </li>
                     {% elif 'admin_id' in session %}
-                    <li class="nav-item">
+                    <li class="nav-item me-2">
                         <a class="nav-link btn btn-outline-danger btn-sm px-3" href="{{ url_for('logout') }}" style="border-radius: 50px;">
                             <i class="fas fa-sign-out-alt me-1"></i> Logout
                         </a>
@@ -152,17 +152,18 @@
                             <i class="fas fa-user-plus me-1"></i> Register
                         </a>
                     </li>
-                    <li class="nav-item ms-2">
-                        <button id="theme-toggle" class="btn btn-outline-success btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Toggle Theme">
-                            <i id="theme-icon" class="fas fa-sun text-warning"></i>
-                        </button>
-                    </li>
-                    <li class="nav-item">
+                    <li class="nav-item me-2">
                         <a class="nav-link btn btn-info btn-sm px-3" href="{{ url_for('admin_login') }}" style="border-radius: 50px;">
                             <i class="fas fa-user-shield me-1"></i> Admin
                         </a>
                     </li>
                     {% endif %}
+                    <!-- Always visible Theme Toggle Button -->
+                    <li class="nav-item ms-2">
+                        <button id="theme-toggle" class="btn btn-outline-success btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;" title="Toggle Theme">
+                            <i id="theme-icon" class="fas fa-sun text-warning"></i>
+                        </button>
+                    </li>
                 </ul>
             </div>
         </div>
