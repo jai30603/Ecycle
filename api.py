@@ -39,24 +39,54 @@ def generate_fallback_results(image_path):
     filename_lower = os.path.basename(image_path).lower()
     predicted_class = "Laptop"  # Default
     
-    if "phone" in filename_lower or "mobile" in filename_lower:
+    if "phone" in filename_lower or "mobile" in filename_lower or "cell" in filename_lower:
         predicted_class = "Smartphone"
-    elif "pc" in filename_lower or "desktop" in filename_lower:
+    elif "laptop" in filename_lower or "notebook" in filename_lower or "macbook" in filename_lower:
+        predicted_class = "Laptop"
+    elif "pc" in filename_lower or "desktop" in filename_lower or "cpu" in filename_lower:
         predicted_class = "Desktop-PC"
-    elif "tv" in filename_lower or "display" in filename_lower:
+    elif "tv" in filename_lower or "television" in filename_lower:
         predicted_class = "Flat-Panel-TV"
-    elif "monitor" in filename_lower:
+    elif "monitor" in filename_lower or "screen" in filename_lower:
         predicted_class = "Flat-Panel-Monitor"
     elif "keyboard" in filename_lower:
         predicted_class = "Computer-Keyboard"
     elif "mouse" in filename_lower:
         predicted_class = "Computer-Mouse"
-    elif "printer" in filename_lower:
+    elif "printer" in filename_lower or "scanner" in filename_lower:
         predicted_class = "Printer"
+    elif "battery" in filename_lower or "cell" in filename_lower or "duracell" in filename_lower:
+        predicted_class = "Battery"
+    elif "camera" in filename_lower:
+        predicted_class = "Camera"
+    elif "headphone" in filename_lower or "headset" in filename_lower or "earphone" in filename_lower:
+        predicted_class = "Headphone"
+    elif "speaker" in filename_lower or "audio" in filename_lower:
+        predicted_class = "Speaker"
+    elif "microwave" in filename_lower:
+        predicted_class = "Microwave"
+    elif "router" in filename_lower or "modem" in filename_lower or "wifi" in filename_lower:
+        predicted_class = "Router"
     elif "fridge" in filename_lower or "refrigerator" in filename_lower:
         predicted_class = "Refrigerator"
-    elif "washing" in filename_lower:
+    elif "washing" in filename_lower or "washer" in filename_lower:
         predicted_class = "Washing-Machine"
+    elif "ac" in filename_lower or "air" in filename_lower or "conditioner" in filename_lower:
+        predicted_class = "Air-Conditioner"
+    elif "tablet" in filename_lower or "ipad" in filename_lower:
+        predicted_class = "Tablet"
+    elif "watch" in filename_lower:
+        predicted_class = "Smart-Watch"
+    elif "playstation" in filename_lower or "ps5" in filename_lower or "xbox" in filename_lower:
+        predicted_class = "PlayStation-5"
+    elif "bulb" in filename_lower or "lamp" in filename_lower or "led" in filename_lower:
+        predicted_class = "LED-Bulb"
+    elif "hard" in filename_lower or "hdd" in filename_lower or "ssd" in filename_lower or "drive" in filename_lower:
+        predicted_class = "SSD"
+    elif "adapter" in filename_lower or "charger" in filename_lower:
+        predicted_class = "Power-Adapter"
+    elif "fan" in filename_lower:
+        predicted_class = "Ceiling-Fan"
     else:
         predicted_class = random.choice(EWASTE_CLASSES)
     
