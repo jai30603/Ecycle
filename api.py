@@ -7,12 +7,23 @@ from datetime import datetime
 # Model details
 MODEL_ID = "e-waste-dataset-r0ojc/43"
 
-# List of common e-waste classes for fallback
+# List of all 77 e-waste classes in the Roboflow dataset
 EWASTE_CLASSES = [
-    "Laptop", "Smartphone", "Desktop-PC", "Tablet", "Flat-Panel-Monitor",
-    "Printer", "Air-Conditioner", "Washing-Machine", "Refrigerator",
-    "Microwave", "Flat-Panel-TV", "Camera", "Computer-Keyboard",
-    "Computer-Mouse", "Headphone", "Battery", "PCB", "Router"
+    "Air-Conditioner", "Bar-Phone", "Battery", "Blood-Pressure-Monitor", "Boiler",
+    "CRT-Monitor", "CRT-TV", "Calculator", "Camera", "Ceiling-Fan", "Christmas-Lights",
+    "Clothes-Iron", "Coffee-Machine", "Compact-Fluorescent-Lamps", "Computer-Keyboard",
+    "Computer-Mouse", "Cooled-Dispenser", "Cooling-Display", "Dehumidifier", "Desktop-PC",
+    "Digital-Oscilloscope", "Dishwasher", "Drone", "Electric-Bicycle", "Electric-Guitar",
+    "Electrocardiograph-Machine", "Electronic-Keyboard", "Exhaust-Fan", "Flashlight",
+    "Flat-Panel-Monitor", "Flat-Panel-TV", "Floor-Fan", "Freezer", "Glucose-Meter",
+    "HDD", "Hair-Dryer", "Headphone", "LED-Bulb", "Laptop", "Microwave", "Music-Player",
+    "Neon-Sign", "Network-Switch", "Non-Cooled-Dispenser", "Oven", "PCB",
+    "Patient-Monitoring-System", "Photovoltaic-Panel", "PlayStation-5", "Power-Adapter",
+    "Printer", "Projector", "Pulse-Oximeter", "Range-Hood", "Refrigerator", "Rotary-Mower",
+    "Router", "SSD", "Server", "Smart-Watch", "Smartphone", "Smoke-Detector",
+    "Soldering-Iron", "Speaker", "Stove", "Straight-Tube-Fluorescent-Lamp", "Street-Lamp",
+    "TV-Remote-Control", "Table-Lamp", "Tablet", "Telephone-Set", "Toaster",
+    "Tumble-Dryer", "USB-Flash-Drive", "Vacuum-Cleaner", "Washing-Machine", "Xbox-Series-X"
 ]
 
 def generate_fallback_results(image_path):
