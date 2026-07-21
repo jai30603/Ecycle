@@ -6,7 +6,7 @@ import csv
 import pandas as pd
 from io import BytesIO, StringIO
 from datetime import datetime, timedelta
-from flask import render_template, request, redirect, url_for, flash, session, jsonify, make_response, send_file, abort, current_app
+from flask import render_template, request, redirect, url_for, flash, session, jsonify, make_response, send_file, abort, current_app, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_login import login_required, current_user
@@ -2188,3 +2188,13 @@ def admin_post_message():
     
     flash('Error posting message. Please try again.', 'danger')
     return redirect(url_for('admin_etalk'))
+
+# PWA Manifest and Service Worker Routes
+@app.route('/manifest.json')
+def manifest_json():
+    return send_from_directory('static', 'manifest.json', mimetype='application/json')
+
+@app.route('/sw.js')
+def service_worker():
+    return send_from_directory('static', 'sw.js', mimetype='application/javascript')
+
