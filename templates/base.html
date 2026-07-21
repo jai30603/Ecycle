@@ -189,8 +189,8 @@
     </main>
 
     <!-- Footer -->
-    <footer class="footer" style="background: linear-gradient(to right, rgba(26, 32, 36, 0.98), rgba(33, 37, 41, 0.95)); border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 4rem 0 2rem;">
-        <div class="container">
+    <footer class="site-footer">
+        <div class="container py-5">
             <div class="row gy-4">
                 <div class="col-lg-4 col-md-6">
                     <div class="mb-4">
@@ -198,76 +198,76 @@
                             <div class="brand-icon me-2 d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #2ecc71, #27ae60); width: 40px; height: 40px; border-radius: 10px;">
                                 <i class="fas fa-recycle text-white"></i>
                             </div>
-                            <span style="font-weight: 700; letter-spacing: 0.5px; font-size: 1.5rem;">ECYCLE</span>
+                            <span class="footer-brand-title">ECYCLE</span>
                         </div>
-                        <p class="text-light mb-3" style="opacity: 0.8;">Making e-waste recycling easy, rewarding, and accessible to everyone. Join our mission for a cleaner planet.</p>
+                        <p class="footer-desc mb-3">Making e-waste recycling easy, rewarding, and accessible to everyone. Join our mission for a cleaner planet.</p>
                         <div class="d-flex gap-2 mb-3">
                             <div class="d-flex align-items-center">
-                                <div class="p-2 me-2 rounded-circle" style="background: rgba(255, 255, 255, 0.1);">
-                                    <i class="fas fa-envelope text-primary"></i>
+                                <div class="p-2 me-2 rounded-circle footer-icon-bg">
+                                    <i class="fas fa-envelope text-success"></i>
                                 </div>
-                                <span class="text-light">contact@ecycle.com</span>
+                                <span class="footer-text">contact@ecycle.com</span>
                             </div>
                         </div>
                         <div class="d-flex gap-2">
                             <div class="d-flex align-items-center">
-                                <div class="p-2 me-2 rounded-circle" style="background: rgba(255, 255, 255, 0.1);">
+                                <div class="p-2 me-2 rounded-circle footer-icon-bg">
                                     <i class="fas fa-phone text-success"></i>
                                 </div>
-                                <span class="text-light">(123) 456-7890</span>
+                                <span class="footer-text">(123) 456-7890</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-2 col-md-6">
-                    <h5 class="text-white mb-4" style="position: relative; padding-bottom: 10px;">
+                    <h5 class="footer-heading mb-4">
                         Quick Links
-                        <span style="position: absolute; bottom: 0; left: 0; width: 50px; height: 3px; background: linear-gradient(to right, var(--bs-primary), transparent);"></span>
+                        <span class="footer-heading-line" style="background: linear-gradient(to right, var(--bs-primary), transparent);"></span>
                     </h5>
                     <ul class="list-unstyled footer-links">
-                        <li class="mb-2"><a href="{{ url_for('index') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-primary" style="font-size: 0.7rem;"></i>Home</a></li>
-                        <li class="mb-2"><a href="{{ url_for('about') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-primary" style="font-size: 0.7rem;"></i>About Project & Creator</a></li>
-                        <li class="mb-2"><a href="{{ url_for('learn') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-primary" style="font-size: 0.7rem;"></i>Learn About E-waste</a></li>
-                        <li class="mb-2"><a href="{{ url_for('schedule') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-primary" style="font-size: 0.7rem;"></i>Schedule Pickup</a></li>
-                        <li class="mb-2"><a href="{{ url_for('rewards') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-primary" style="font-size: 0.7rem;"></i>Rewards</a></li>
+                        <li class="mb-2"><a href="{{ url_for('index') }}" class="footer-link"><i class="fas fa-chevron-right me-2 text-success" style="font-size: 0.7rem;"></i>Home</a></li>
+                        <li class="mb-2"><a href="{{ url_for('about') }}" class="footer-link"><i class="fas fa-chevron-right me-2 text-success" style="font-size: 0.7rem;"></i>About Project & Creator</a></li>
+                        <li class="mb-2"><a href="{{ url_for('learn') }}" class="footer-link"><i class="fas fa-chevron-right me-2 text-success" style="font-size: 0.7rem;"></i>Learn About E-waste</a></li>
+                        <li class="mb-2"><a href="{{ url_for('schedule') }}" class="footer-link"><i class="fas fa-chevron-right me-2 text-success" style="font-size: 0.7rem;"></i>Schedule Pickup</a></li>
+                        <li class="mb-2"><a href="{{ url_for('rewards') }}" class="footer-link"><i class="fas fa-chevron-right me-2 text-success" style="font-size: 0.7rem;"></i>Rewards</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-2 col-md-6">
-                    <h5 class="text-white mb-4" style="position: relative; padding-bottom: 10px;">
+                    <h5 class="footer-heading mb-4">
                         Resources
-                        <span style="position: absolute; bottom: 0; left: 0; width: 50px; height: 3px; background: linear-gradient(to right, var(--bs-info), transparent);"></span>
+                        <span class="footer-heading-line" style="background: linear-gradient(to right, var(--bs-info), transparent);"></span>
                     </h5>
                     <ul class="list-unstyled footer-links">
-                        <li class="mb-2"><a href="{{ url_for('etalk') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-info" style="font-size: 0.7rem;"></i>E-Talk Community</a></li>
-                        <li class="mb-2"><a href="{{ url_for('certificates') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-info" style="font-size: 0.7rem;"></i>Certificates</a></li>
-                        <li class="mb-2"><a href="{{ url_for('history') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-info" style="font-size: 0.7rem;"></i>Pickup History</a></li>
-                        <li class="mb-2"><a href="{{ url_for('bulk_pickup') }}" class="text-light text-decoration-none" style="opacity: 0.8; transition: all 0.3s;"><i class="fas fa-chevron-right me-2 text-info" style="font-size: 0.7rem;"></i>Bulk Pickup</a></li>
+                        <li class="mb-2"><a href="{{ url_for('etalk') }}" class="footer-link"><i class="fas fa-chevron-right me-2 text-info" style="font-size: 0.7rem;"></i>E-Talk Community</a></li>
+                        <li class="mb-2"><a href="{{ url_for('certificates') }}" class="footer-link"><i class="fas fa-chevron-right me-2 text-info" style="font-size: 0.7rem;"></i>Certificates</a></li>
+                        <li class="mb-2"><a href="{{ url_for('history') }}" class="footer-link"><i class="fas fa-chevron-right me-2 text-info" style="font-size: 0.7rem;"></i>Pickup History</a></li>
+                        <li class="mb-2"><a href="{{ url_for('bulk_pickup') }}" class="footer-link"><i class="fas fa-chevron-right me-2 text-info" style="font-size: 0.7rem;"></i>Bulk Pickup</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-4 col-md-6">
-                    <h5 class="text-white mb-4" style="position: relative; padding-bottom: 10px;">
+                    <h5 class="footer-heading mb-4">
                         Connect With Us
-                        <span style="position: absolute; bottom: 0; left: 0; width: 50px; height: 3px; background: linear-gradient(to right, var(--bs-success), transparent);"></span>
+                        <span class="footer-heading-line" style="background: linear-gradient(to right, var(--bs-success), transparent);"></span>
                     </h5>
                     <div class="d-flex gap-3 mb-4">
-                        <a href="#" class="social-icon" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(39, 174, 96, 0.2)); color: var(--bs-primary); transition: all 0.3s;">
+                        <a href="#" class="social-icon">
                             <i class="fab fa-facebook-f"></i>
                         </a>
-                        <a href="#" class="social-icon" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(39, 174, 96, 0.2)); color: var(--bs-primary); transition: all 0.3s;">
+                        <a href="#" class="social-icon">
                             <i class="fab fa-twitter"></i>
                         </a>
-                        <a href="#" class="social-icon" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(39, 174, 96, 0.2)); color: var(--bs-primary); transition: all 0.3s;">
+                        <a href="#" class="social-icon">
                             <i class="fab fa-instagram"></i>
                         </a>
-                        <a href="#" class="social-icon" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(39, 174, 96, 0.2)); color: var(--bs-primary); transition: all 0.3s;">
+                        <a href="#" class="social-icon">
                             <i class="fab fa-linkedin-in"></i>
                         </a>
                     </div>
-                    <div class="newsletter-box p-3" style="background: rgba(255, 255, 255, 0.05); border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.1);">
-                        <h6 class="text-white mb-3">Subscribe to our newsletter</h6>
-                        <p class="text-light mb-3" style="opacity: 0.7; font-size: 0.9rem;">Get the latest updates on e-waste management and recycling initiatives.</p>
+                    <div class="newsletter-box p-3">
+                        <h6 class="footer-heading mb-3" style="font-size: 1rem;">Subscribe to our newsletter</h6>
+                        <p class="footer-desc mb-3" style="font-size: 0.9rem;">Get the latest updates on e-waste management and recycling initiatives.</p>
                         <div class="input-group">
-                            <input type="email" class="form-control" placeholder="Your email address" style="border-radius: 50px 0 0 50px; padding-left: 20px; background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.1);">
+                            <input type="email" class="form-control footer-input" placeholder="Your email address">
                             <button class="btn btn-primary" style="border-radius: 0 50px 50px 0; padding: 0 20px;">
                                 <i class="fas fa-paper-plane"></i>
                             </button>
@@ -275,16 +275,16 @@
                     </div>
                 </div>
             </div>
-            <hr style="opacity: 0.1; margin: 2rem 0;">
+            <hr class="footer-divider">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="mb-md-0 text-light" style="opacity: 0.7;">&copy; {{ now.year if now else 2025 }} Ecycle. All rights reserved.</p>
+                    <p class="mb-md-0 footer-copy">&copy; {{ now.year if now else 2025 }} Ecycle. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <div class="d-flex justify-content-md-end justify-content-center gap-3">
-                        <a href="#" class="text-light text-decoration-none" style="opacity: 0.7; font-size: 0.9rem;">Privacy Policy</a>
-                        <a href="#" class="text-light text-decoration-none" style="opacity: 0.7; font-size: 0.9rem;">Terms of Service</a>
-                        <a href="#" class="text-light text-decoration-none" style="opacity: 0.7; font-size: 0.9rem;">FAQ</a>
+                        <a href="#" class="footer-link">Privacy Policy</a>
+                        <a href="#" class="footer-link">Terms of Service</a>
+                        <a href="#" class="footer-link">FAQ</a>
                     </div>
                 </div>
             </div>
